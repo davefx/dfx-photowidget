@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  updatePeriodMillis="0": el sistema nunca despierta la app para actualizar el widget.
-  Los cambios de foto los lleva una alarma inexacta NO despertadora (ver Scheduler.kt).
+  updatePeriodMillis="0": the system never wakes the app to update the widget.
+  Photo changes are driven by an inexact, NON-wakeup alarm (see Scheduler.kt).
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp"

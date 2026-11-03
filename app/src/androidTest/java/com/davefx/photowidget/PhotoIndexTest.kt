@@ -57,7 +57,7 @@ class PhotoIndexTest {
         val all = PhotoIndex.readAll(ctx, ID)
         all.forEachIndexed { i, u -> assertEquals(u, PhotoIndex.at(ctx, ID, i)) }
         assertNull(PhotoIndex.at(ctx, ID, all.size))
-        assertFalse("no debe quedar el temporal", File(ctx.filesDir, "index_$ID.tmp").exists())
+        assertFalse("temporary file must not be left behind", File(ctx.filesDir, "index_$ID.tmp").exists())
     }
 
     @Test fun missingIndexIsEmpty() {
@@ -76,6 +76,6 @@ class PhotoIndexTest {
 
     @Test fun orderIsShuffled() {
         val orders = (1..5).map { PhotoIndex.rebuild(ctx, ID, folderCfg()); PhotoIndex.readAll(ctx, ID) }
-        assert(orders.toSet().size > 1) { "cinco barajados idénticos" }
+        assert(orders.toSet().size > 1) { "five identical shuffles" }
     }
 }

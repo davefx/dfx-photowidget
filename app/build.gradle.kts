@@ -21,8 +21,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Firmado con la clave de depuración para poder instalarlo directamente.
-            // Cámbialo por tu propia keystore si lo vas a distribuir.
+            // Signed with the debug key so it can be installed directly.
+            // Replace it with your own keystore if you're going to distribute it.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

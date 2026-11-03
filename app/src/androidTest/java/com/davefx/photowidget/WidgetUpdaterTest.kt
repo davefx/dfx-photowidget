@@ -16,8 +16,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Máquina de estados de los cambios de foto. El widget no está colocado, así que las llamadas a
- * AppWidgetManager no tienen efecto: se comprueba solo qué decide y qué guarda.
+ * State machine for photo changes. The widget is not placed, so AppWidgetManager calls have no
+ * effect: only what it decides and what it saves are checked.
  */
 @RunWith(AndroidJUnit4::class)
 class WidgetUpdaterTest {
@@ -86,11 +86,11 @@ class WidgetUpdaterTest {
         assertEquals(0L, state().indexTime)
     }
 
-    // Android 15+: ventana de fotos (PhotoWindow).
+    // Android 15+: photo window (PhotoWindow).
 
     private fun windowed(size: Int = 20) {
         assumeTrue(PhotoWindow.enabled)
-        assumeTrue("la pantalla debe estar encendida", ctx.getSystemService(PowerManager::class.java).isInteractive)
+        assumeTrue("screen must be on", ctx.getSystemService(PowerManager::class.java).isInteractive)
         Store.saveState(ctx, ID, state().copy(indexSize = size, indexTime = System.currentTimeMillis()))
     }
 
@@ -120,7 +120,7 @@ class WidgetUpdaterTest {
         Store.saveState(ctx, ID, state().copy(windowStart = 20 - 1))
         WidgetUpdater.handle(ctx, ID, Trigger.ALARM)
         assertEquals(0, state().windowStart)
-        assertEquals("vuelta completa: rebarajar", 0L, state().indexTime)
+        assertEquals("full cycle: reshuffle", 0L, state().indexTime)
     }
 
     @Test fun tapOnMiddlePhotoKeepsWindow() {
@@ -139,7 +139,7 @@ class WidgetUpdaterTest {
         Store.saveState(ctx, ID, state().copy(windowStart = 20 - 1))
         WidgetUpdater.handle(ctx, ID, Trigger.TAP, shown = k - 1)
         assertEquals(0, state().windowStart)
-        assertEquals("vuelta completa: rebarajar", 0L, state().indexTime)
+        assertEquals("full cycle: reshuffle", 0L, state().indexTime)
     }
 
     @Test fun tapOnLastPhotoWhenAllFitDoesNotTouchState() {
@@ -172,13 +172,13 @@ class WidgetUpdaterTest {
         shell("settings put global low_power 1")
         try {
             Thread.sleep(500)
-            assumeTrue("no se pudo activar el ahorro de batería", pm.isPowerSaveMode)
+            assumeTrue("could not enable battery saver", pm.isPowerSaveMode)
             WidgetUpdater.handle(ctx, ID, Trigger.ALARM)
             assertEquals(0, state().position)
-            // Tocar sí funciona con ahorro de batería.
+            // Tapping still works with battery saver on.
             WidgetUpdater.handle(ctx, ID, Trigger.TAP)
             assertEquals(1, state().position)
-            // Si el usuario desactiva la pausa, la alarma sí avanza.
+            // If the user disables the pause, the alarm does advance.
             Store.save(ctx, ID, hourly.copy(pauseOnBatterySaver = false))
             Store.saveState(ctx, ID, state().copy(lastChange = old))
             WidgetUpdater.handle(ctx, ID, Trigger.ALARM)

@@ -27,7 +27,7 @@ class RendererTest {
     @Test fun cropFillsTargetExactly() {
         val b = Renderer.decode(ctx, big, 300, 300, cfg = CROP)
         assertEquals(300, b.width); assertEquals(300, b.height)
-        // Recorte centrado: izquierda roja, derecha azul.
+        // Centered crop: left half red, right half blue.
         assertTrue(isRed(b.getPixel(10, 150))); assertTrue(isBlue(b.getPixel(290, 150)))
     }
 
@@ -71,12 +71,12 @@ class RendererTest {
         val f = Renderer.frame(ctx, b, WidgetConfig(cornerDp = 0, borderDp = 8, borderColor = Color.WHITE), 300)
         val px = (8 * ctx.resources.displayMetrics.density / 2).roundToInt()
         val edge = f.getPixel(150, px)
-        assertTrue("borde: ${Integer.toHexString(edge)}", Color.red(edge) > 230 && Color.green(edge) > 230 && Color.blue(edge) > 230)
+        assertTrue("border: ${Integer.toHexString(edge)}", Color.red(edge) > 230 && Color.green(edge) > 230 && Color.blue(edge) > 230)
         assertTrue(isRed(f.getPixel(100, 150)))
     }
 
     @Test fun cropAnchorWithoutZoom() {
-        // Foto 4:3 en widget 1:2: se recorta a lo ancho; con encuadre a la izquierda todo es rojo.
+        // 4:3 photo in a 1:2 widget: cropped horizontally; anchored left, everything is red.
         val b = Renderer.decode(ctx, big, 300, 600, cfg = CROP.copy(anchor = WidgetConfig.ANCHOR_LEFT))
         assertEquals(300, b.width); assertEquals(600, b.height)
         assertTrue(isRed(b.getPixel(5, 300))); assertTrue(isRed(b.getPixel(295, 300)))
@@ -85,7 +85,7 @@ class RendererTest {
     @Test fun cropAnchorRightAndTop() {
         val right = Renderer.decode(ctx, big, 300, 600, cfg = CROP.copy(anchor = WidgetConfig.ANCHOR_RIGHT))
         assertTrue(isBlue(right.getPixel(5, 300))); assertTrue(isBlue(right.getPixel(295, 300)))
-        // Foto apaisada en widget apaisado más ancho: se recorta en vertical; arriba/abajo no fallan.
+        // Landscape photo in a wider landscape widget: cropped vertically; top/bottom must not fail.
         val top = Renderer.decode(ctx, big, 600, 200, cfg = CROP.copy(anchor = WidgetConfig.ANCHOR_TOP))
         assertEquals(600, top.width); assertEquals(200, top.height)
     }
@@ -97,7 +97,7 @@ class RendererTest {
     }
 
     @Test fun targetSizeIsCapped() {
-        val (w, h) = Renderer.targetSize(ctx, ID) // widget no colocado: tamaño por defecto
+        val (w, h) = Renderer.targetSize(ctx, ID) // widget not placed: default size
         assertTrue(w in 1..1080 && h in 1..1080)
     }
 }

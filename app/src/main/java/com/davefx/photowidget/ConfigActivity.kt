@@ -32,9 +32,9 @@ import androidx.core.view.WindowInsetsCompat
 import kotlin.math.roundToInt
 
 /**
- * Configuración de un widget (al colocarlo, o al reconfigurarlo con pulsación larga en Android 12+).
- * Abierta desde el icono de la app, lista los widgets existentes para poder editarlos también
- * en Android 10 y 11, que no permiten reconfigurar desde el escritorio.
+ * Widget configuration (when placing it, or when reconfiguring via long press on Android 12+).
+ * When opened from the app icon, it lists the existing widgets so they can also be edited
+ * on Android 10 and 11, which don't support reconfiguring from the home screen.
  */
 class ConfigActivity : ComponentActivity() {
 
@@ -63,7 +63,7 @@ class ConfigActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-        // Si el usuario sale sin guardar, el launcher descarta el widget recién colocado.
+        // If the user leaves without saving, the launcher discards the newly placed widget.
         setResult(RESULT_CANCELED, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
 
         if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) showConfigScreen()
@@ -71,11 +71,11 @@ class ConfigActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Pantalla de la app: se rehace al volver para que aparezcan los widgets recién añadidos.
+        // App screen: rebuilt on return so newly added widgets show up.
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) showLauncherScreen()
     }
 
-    // ---------- Pantalla de inicio (icono de la app) ----------
+    // ---------- Start screen (app icon) ----------
 
     private fun showLauncherScreen() {
         val col = column()
@@ -104,8 +104,8 @@ class ConfigActivity : ComponentActivity() {
     }
 
     /**
-     * Al colocar un widget desde la app, el launcher no abre la configuración: este aviso la abre.
-     * El sistema añade el ID del widget nuevo al intent, por eso tiene que ser mutable.
+     * When a widget is placed from the app, the launcher doesn't open the configuration: this callback does.
+     * The system adds the new widget's ID to the intent, which is why it has to be mutable.
      */
     private fun pinnedCallback(): PendingIntent = PendingIntent.getActivity(
         this, 0,
@@ -113,7 +113,7 @@ class ConfigActivity : ComponentActivity() {
         PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0,
     )
 
-    // ---------- Configuración de un widget ----------
+    // ---------- Widget configuration ----------
 
     private fun showConfigScreen() {
         cfg = Store.load(this, widgetId)
@@ -216,7 +216,7 @@ class ConfigActivity : ComponentActivity() {
         tree
     }
 
-    // ---------- Construcción de la interfaz ----------
+    // ---------- UI building ----------
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).roundToInt()
 
@@ -301,13 +301,13 @@ class ConfigActivity : ComponentActivity() {
         options.indices.minByOrNull { kotlin.math.abs(options[it] - value) } ?: 0
 
     companion object {
-        /** El selector de carpetas se abre en DCIM, donde suelen estar las fotos de la cámara. */
+        /** The folder picker opens in DCIM, where camera photos usually live. */
         private val DCIM_URI: Uri =
             DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:DCIM")
 
         /**
-         * Segundos. 0 = solo al tocar. Hasta 5 min: pase de diapositivas animado por el launcher.
-         * Desde 15 min: alarma no despertadora que solo indica qué foto toca.
+         * Seconds. 0 = tap only. Up to 5 min: slideshow animated by the launcher.
+         * From 15 min: non-wakeup alarm that only says which photo is next.
          */
         val INTERVALS = intArrayOf(0, 30, 60, 120, 300, 900, 1800, 3600, 10800, 21600, 43200, 86400)
         val CORNERS = intArrayOf(0, 8, 16, 28)

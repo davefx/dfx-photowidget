@@ -10,8 +10,8 @@ import android.util.Log
 import java.util.concurrent.Executors
 
 /**
- * Receptor del widget. No hay ningún servicio: cada evento se atiende con goAsync() en un único
- * hilo de fondo y el proceso queda libre en cuanto termina.
+ * Widget receiver. There is no service: each event is handled with goAsync() on a single
+ * background thread, and the process is free again as soon as it finishes.
  */
 class PhotoWidgetProvider : AppWidgetProvider() {
 
@@ -24,11 +24,11 @@ class PhotoWidgetProvider : AppWidgetProvider() {
             }
             Scheduler.ACTION_ALARM -> runAsync {
                 if (validId(ctx, id)) WidgetUpdater.handle(ctx, id, WidgetUpdater.Trigger.ALARM)
-                else Scheduler.cancel(ctx, id) // alarma huérfana de un widget eliminado
+                else Scheduler.cancel(ctx, id) // orphaned alarm from a deleted widget
             }
             ACTION_CONFIGURED -> runAsync { if (validId(ctx, id)) WidgetUpdater.handle(ctx, id, WidgetUpdater.Trigger.CONFIGURED) }
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> runAsync {
-                // Las alarmas no sobreviven a un reinicio: reprograma y repinta la foto en caché.
+                // Alarms don't survive a reboot: reschedule and redraw the cached photo.
                 for (wid in allIds(ctx)) {
                     if (!Store.isConfigured(ctx, wid)) continue
                     val cfg = Store.load(ctx, wid)
@@ -72,7 +72,7 @@ class PhotoWidgetProvider : AppWidgetProvider() {
             try {
                 block()
             } catch (e: Exception) {
-                Log.e("PhotoWidget", "Error en el widget", e)
+                Log.e("PhotoWidget", "Widget error", e)
             } finally {
                 pending.finish()
             }
@@ -89,7 +89,7 @@ class PhotoWidgetProvider : AppWidgetProvider() {
         private fun validId(ctx: Context, id: Int) =
             id != AppWidgetManager.INVALID_APPWIDGET_ID && id in allIds(ctx)
 
-        /** Avisa al widget de que su configuración ha cambiado. */
+        /** Notifies the widget that its configuration has changed. */
         fun notifyConfigured(ctx: Context, id: Int) {
             ctx.sendBroadcast(
                 Intent(ctx, PhotoWidgetProvider::class.java)

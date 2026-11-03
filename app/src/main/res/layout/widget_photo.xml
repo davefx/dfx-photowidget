@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Las esquinas redondeadas y el marco se dibujan dentro del bitmap: el launcher no hace trabajo extra. -->
+<!-- Rounded corners and the frame are drawn into the bitmap itself, so the launcher does no extra work. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"

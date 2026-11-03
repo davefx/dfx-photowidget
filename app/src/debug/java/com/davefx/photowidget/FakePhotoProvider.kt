@@ -16,21 +16,21 @@ import java.io.FileNotFoundException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Proveedor de documentos falso, SOLO en la variante debug, para los tests instrumentados.
+ * Fake documents provider, ONLY in the debug variant, for instrumented tests.
  *
- * Simula una carpeta de fotos con subcarpetas, carpetas ocultas, GIF y ficheros que no son fotos.
- * Los ID de documento son rutas («root/sub/d.jpg»), igual que en el almacenamiento real.
- * Las fotos se generan al vuelo: nombre «w x h» → JPEG de ese tamaño, mitad izquierda roja y
- * mitad derecha azul, para poder comprobar recortes.
+ * Simulates a photo folder with subfolders, hidden folders, GIFs and non-photo files.
+ * Document IDs are paths ("root/sub/d.jpg"), just like in real storage.
+ * Photos are generated on the fly: a "w x h" name yields a JPEG of that size, left half red and
+ * right half blue, so crops can be checked.
  */
 class FakePhotoProvider : DocumentsProvider() {
 
     companion object {
         const val AUTHORITY = "com.davefx.photowidget.fake"
-        /** Consultas recibidas: permite comprobar que no se recorren carpetas sin necesidad. */
+        /** Queries received: lets tests check that folders are not scanned unnecessarily. */
         val queries = AtomicInteger()
 
-        /** Árbol: ruta → es carpeta. */
+        /** Tree: path (trailing "/" means folder). */
         val TREE: List<String> = buildList {
             add("root/")
             add("root/a_800x600.jpg")
@@ -43,7 +43,7 @@ class FakePhotoProvider : DocumentsProvider() {
             add("root/sub/deeper/d_300x200.jpg")
             add("root/.thumbnails/")
             add("root/.thumbnails/t_100x100.jpg")
-            // Cadena de 8 niveles: el escaneo se detiene en la profundidad 6.
+            // 8-level chain: the scan stops at depth 6.
             var p = "root"
             for (i in 1..8) {
                 p += "/l$i"

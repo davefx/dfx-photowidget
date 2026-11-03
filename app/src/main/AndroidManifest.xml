@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      Sin permisos de red, almacenamiento, wakelock ni servicios.
-      El acceso a fotos se hace con el Storage Access Framework y el selector de fotos,
-      que conceden permisos solo sobre lo que el usuario elige.
-      RECEIVE_BOOT_COMPLETED solo sirve para reprogramar la alarma (no despertadora) tras reiniciar.
+      No network, storage, wakelock or service permissions.
+      Photos are accessed through the Storage Access Framework and the photo picker,
+      which only grant access to what the user picks.
+      RECEIVE_BOOT_COMPLETED is only used to reschedule the (non-wakeup) alarm after a reboot.
     -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -30,7 +30,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Solo el launcher (permiso BIND_REMOTEVIEWS) puede pedirle fotos al pase de diapositivas. -->
+        <!-- Only the launcher (BIND_REMOTEVIEWS permission) can request photos from the slideshow. -->
         <service
             android:name=".SlideshowService"
             android:exported="false"

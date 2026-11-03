@@ -1,4 +1,4 @@
-"""Utilidades mínimas para manejar un dispositivo Android por adb (sin dependencias externas)."""
+"""Minimal helpers to drive an Android device over adb (no external dependencies)."""
 import re
 import subprocess
 import time
@@ -32,7 +32,7 @@ class Device:
             if self.sh("getprop sys.boot_completed").strip() == "1":
                 return
             time.sleep(2)
-        raise TimeoutError("el dispositivo no arranca")
+        raise TimeoutError("device did not boot")
 
     def key(self, k):
         self.sh(f"input keyevent {k}")
@@ -48,7 +48,7 @@ class Device:
         with open(path, "wb") as f:
             f.write(subprocess.run(["adb", "-s", self.serial, "exec-out", "screencap", "-p"], capture_output=True).stdout)
 
-    # ---------- interfaz ----------
+    # ---------- UI ----------
     def dump(self):
         for _ in range(3):
             out = self.sh("uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; cat /sdcard/ui.xml")
@@ -104,7 +104,7 @@ class Device:
     def click(self, pattern=None, desc=None, rid=None, timeout=10):
         n = self.find(pattern, desc, rid, timeout=timeout)
         if n is None:
-            raise LookupError(f"no encuentro {pattern or desc or rid}")
+            raise LookupError(f"not found: {pattern or desc or rid}")
         self.tap_node(n)
         return n
 
@@ -116,7 +116,7 @@ class Device:
             w, h = self.screen_size()
             self.sh(f"input swipe {w // 2} {h * 3 // 4} {w // 2} {h // 3} 400")
             time.sleep(1)
-        raise LookupError(f"no encuentro {pattern} al desplazar")
+        raise LookupError(f"not found while scrolling: {pattern}")
 
     def screen_size(self):
         m = re.search(r"(\d+)x(\d+)", self.sh("wm size"))
@@ -132,7 +132,7 @@ class Device:
         ids = set()
         for m in re.finditer(r"id=(\d+)[^\n]*\n(?:[^\n]*\n){0,3}?[^\n]*provider=ComponentInfo\{" + PKG, out):
             ids.add(int(m.group(1)))
-        if not ids:  # formato alternativo
+        if not ids:  # alternative format
             blocks = out.split("[")
             for b in blocks:
                 if PKG + "/" in b and "PhotoWidgetProvider" in b:
@@ -142,7 +142,7 @@ class Device:
         return sorted(ids)
 
     def requests(self, wid=None):
-        """Fotos pedidas por el launcher (cada una es una decodificación) desde el último logcat -c."""
+        """Photos requested by the launcher (each one is a decode) since the last logcat -c."""
         log = self.adb("logcat", "-d", "-s", "Slideshow:D")
         pat = f"getViewAt widget={wid} " if wid is not None else "getViewAt widget="
         return log.count(pat)
@@ -162,7 +162,7 @@ class Device:
         return m.group(1) if m else None
 
     def alarms(self):
-        """Alarmas de la app: lista de (es_despertadora, intervalo_ms)."""
+        """App alarms: list of (is_wakeup, interval_ms)."""
         lines = self.sh("dumpsys alarm").splitlines()
         res = []
         for i, l in enumerate(lines):
@@ -181,7 +181,7 @@ class Device:
         return res
 
     def widget_bounds(self):
-        """Rectángulo del widget en el escritorio (vista con id de la app)."""
+        """Widget rectangle on the home screen (view with an app id)."""
         nodes = self.dump()
         for rid in (PKG + ":id/root", PKG + ":id/flipper", PKG + ":id/item_photo"):
             for n in nodes:

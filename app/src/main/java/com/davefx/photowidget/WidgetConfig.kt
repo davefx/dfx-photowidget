@@ -4,32 +4,32 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 
-/** Configuración de una instancia del widget. */
+/** Configuration of a widget instance. */
 data class WidgetConfig(
-    /** URIs de árbol (SAF) de las carpetas elegidas. */
+    /** Tree URIs (SAF) of the chosen folders. */
     val folders: Set<String> = emptySet(),
-    /** URIs de fotos sueltas elegidas con el selector. */
+    /** URIs of individual photos chosen with the picker. */
     val photos: Set<String> = emptySet(),
     val includeSubfolders: Boolean = true,
-    /** Segundos entre cambios. 0 = solo cambia al tocar el widget. */
+    /** Seconds between changes. 0 = only changes when the widget is tapped. */
     val intervalSeconds: Int = 3600,
-    /** Cómo ocupa la foto el widget: FIT_CROP (llenarlo recortando) o FIT_WHOLE (foto entera). */
+    /** How the photo fills the widget: FIT_CROP (fill it by cropping) or FIT_WHOLE (whole photo). */
     val fit: Int = FIT_CROP,
-    /** Qué parte de la foto se conserva al recortar: ANCHOR_*. */
+    /** Which part of the photo is kept when cropping: ANCHOR_*. */
     val anchor: Int = ANCHOR_CENTER,
-    /** Radio de las esquinas en dp. */
+    /** Corner radius in dp. */
     val cornerDp: Int = 16,
-    /** Grosor del marco en dp (0 = sin marco). */
+    /** Frame thickness in dp (0 = no frame). */
     val borderDp: Int = 0,
     val borderColor: Int = 0xFFFFFFFF.toInt(),
-    /** No cambiar de foto automáticamente con el ahorro de batería activo. */
+    /** Don't change photos automatically while Battery Saver is on. */
     val pauseOnBatterySaver: Boolean = true,
 ) {
     val hasSources get() = folders.isNotEmpty() || photos.isNotEmpty()
 
     /**
-     * Intervalos cortos (< 15 min): pase de diapositivas animado por el launcher, que solo avanza
-     * mientras el escritorio está a la vista. Intervalos largos: alarma no despertadora.
+     * Short intervals (< 15 min): slideshow animated by the launcher, which only advances
+     * while the home screen is visible. Long intervals: non-wakeup alarm.
      */
     val slideshow get() = intervalSeconds in 1 until SLIDESHOW_MAX_SECONDS
 
@@ -49,14 +49,14 @@ data class WidgetConfig(
     }
 }
 
-/** Estado de ejecución de un widget (no lo edita el usuario). */
+/** Runtime state of a widget (not edited by the user). */
 data class WidgetState(
     val currentUri: String? = null,
     val lastChange: Long = 0L,
     val position: Int = 0,
     val indexTime: Long = 0L,
     val indexSize: Int = 0,
-    /** Android 15+: primera posición del índice que contiene la ventana de fotos (ver PhotoWindow). */
+    /** Android 15+: first index position covered by the photo window (see PhotoWindow). */
     val windowStart: Int = 0,
 )
 
@@ -76,7 +76,7 @@ object Store {
             photos = p.getStringSet("$id.photos", null)?.toSet() ?: d.photos,
             includeSubfolders = p.getBoolean("$id.subfolders", d.includeSubfolders),
             intervalSeconds = p.getInt("$id.intervalSec", d.intervalSeconds),
-            // Compatibilidad: antes solo había «recortar» (true) o «foto entera» (false).
+            // Backward compatibility: previously there was only "crop" (true) or "whole photo" (false).
             fit = p.getInt("$id.fit", if (p.getBoolean("$id.crop", true)) WidgetConfig.FIT_CROP else WidgetConfig.FIT_WHOLE),
             anchor = p.getInt("$id.anchor", d.anchor),
             cornerDp = p.getInt("$id.corner", d.cornerDp),
@@ -98,7 +98,7 @@ object Store {
         putInt("$id.border", c.borderDp)
         putInt("$id.borderColor", c.borderColor)
         putBoolean("$id.pauseSaver", c.pauseOnBatterySaver)
-        // Fuentes cambiadas: invalida el índice para reconstruirlo en el siguiente cambio.
+        // Sources changed: invalidate the index so it's rebuilt on the next change.
         putLong("$id.indexTime", 0L)
     }
 
@@ -129,7 +129,7 @@ object Store {
         PhotoIndex.file(ctx, id).delete()
     }
 
-    /** IDs de widget con configuración guardada. */
+    /** IDs of widgets with a saved configuration. */
     fun configuredIds(ctx: Context): List<Int> =
         prefs(ctx).all.keys.filter { it.endsWith(".intervalSec") }
             .mapNotNull { it.substringBefore('.').toIntOrNull() }

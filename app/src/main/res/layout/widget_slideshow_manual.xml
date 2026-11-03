@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Intervalos largos y «solo al tocar»: el flipper no avanza solo. La alarma (no despertadora) o el
-  toque le indican qué foto mostrar, y el launcher pide esa foto cuando va a dibujar el widget,
-  es decir, solo con el escritorio a la vista.
+  Long intervals and "tap only": the flipper doesn't advance on its own. The (non-wakeup) alarm or a
+  tap tells it which photo to show, and the launcher requests that photo when it draws the widget,
+  i.e. only while the home screen is visible.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"

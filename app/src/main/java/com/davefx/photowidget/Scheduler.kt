@@ -8,18 +8,18 @@ import android.content.Intent
 import android.net.Uri
 
 /**
- * Programación de los cambios automáticos de foto.
+ * Scheduling of automatic photo changes.
  *
- * Clave del ahorro de batería: se usa AlarmManager.RTC (NO RTC_WAKEUP) con alarma inexacta.
- *  - Si el teléfono está dormido cuando vence, NO se despierta: el cambio se hace la próxima vez
- *    que el dispositivo despierte por otro motivo (normalmente, al encender la pantalla).
- *  - Al ser inexacta, Android la agrupa con otras alarmas para minimizar despertares de CPU.
- *  - No hace falta permiso de alarmas exactas, ni servicios, ni WorkManager, ni wakelocks.
- * Si el widget tiene una sola foto o solo cambia al tocarlo, no se programa nada.
+ * Key to saving battery: AlarmManager.RTC (NOT RTC_WAKEUP) with an inexact alarm.
+ *  - If the phone is asleep when it's due, it does NOT wake up: the change happens the next time
+ *    the device wakes for some other reason (usually, when the screen is turned on).
+ *  - Being inexact, Android batches it with other alarms to minimize CPU wakeups.
+ *  - No exact-alarm permission, services, WorkManager or wakelocks needed.
+ * If the widget has a single photo or only changes on tap, nothing is scheduled.
  *
- * En modo pase de diapositivas (intervalos cortos) el launcher se encarga de pasar las fotos;
- * la alarma solo sirve para rebarajar y detectar fotos nuevas una vez al día. Desde Android 15
- * suena cada pocos minutos (con la pantalla apagada no hace nada) para pasar a la siguiente ventana de fotos (ver PhotoWindow).
+ * In slideshow mode (short intervals) the launcher takes care of flipping photos; the alarm
+ * only reshuffles and picks up new photos once a day. Since Android 15 it fires every few
+ * minutes (doing nothing while the screen is off) to move to the next photo window (see PhotoWindow).
  */
 object Scheduler {
     const val ACTION_ALARM = "com.davefx.photowidget.ALARM"
@@ -41,7 +41,7 @@ object Scheduler {
         }
         val interval = when {
             !cfg.slideshow -> cfg.intervalSeconds * 1000L
-            PhotoWindow.enabled -> PhotoWindow.advanceIntervalMs(ctx, id, cfg) // siguiente ventana de fotos
+            PhotoWindow.enabled -> PhotoWindow.advanceIntervalMs(ctx, id, cfg) // next photo window
             else -> AlarmManager.INTERVAL_DAY
         }
         val am = ctx.getSystemService(AlarmManager::class.java)

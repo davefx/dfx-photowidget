@@ -7,14 +7,14 @@ import android.util.Log
 import java.io.File
 
 /**
- * Lista barajada de fotos de un widget, guardada en disco (una URI por línea).
+ * A widget's shuffled photo list, stored on disk (one URI per line).
  *
- * Para ahorrar batería:
- *  - Las carpetas solo se recorren cuando cambia la configuración o, como mucho, una vez al día,
- *    y siempre aprovechando un cambio de foto (nunca por iniciativa propia).
- *  - Avanzar a la siguiente foto lee el fichero línea a línea hasta la posición pedida,
- *    sin cargar la lista entera en memoria.
- *  - La lista se baraja una vez: se recorre entera antes de repetir ninguna foto.
+ * To save battery:
+ *  - Folders are only scanned when the configuration changes or, at most, once a day,
+ *    and always piggybacking on a photo change (never on our own initiative).
+ *  - Advancing to the next photo reads the file line by line up to the requested position,
+ *    without loading the whole list into memory.
+ *  - The list is shuffled once: it is walked through entirely before any photo repeats.
  */
 object PhotoIndex {
     private const val TAG = "PhotoIndex"
@@ -24,7 +24,7 @@ object PhotoIndex {
 
     fun file(ctx: Context, id: Int) = File(ctx.filesDir, "index_$id.txt")
 
-    /** Recorre las fuentes y escribe un índice barajado. Devuelve el número de fotos. */
+    /** Scans the sources and writes a shuffled index. Returns the number of photos. */
     fun rebuild(ctx: Context, id: Int, cfg: WidgetConfig, avoidFirst: String? = null): Int {
         val all = LinkedHashSet<String>()
         all.addAll(cfg.photos)
@@ -35,15 +35,15 @@ object PhotoIndex {
                 val rootId = DocumentsContract.getTreeDocumentId(treeUri)
                 scan(ctx, treeUri, rootId, cfg.includeSubfolders, 0, all)
             } catch (e: Exception) {
-                Log.w(TAG, "No se puede leer la carpeta $tree", e)
+                Log.w(TAG, "Can't read folder $tree", e)
             }
         }
         val list = all.toMutableList().apply { shuffle() }
-        // Evita que, al rebarajar, salga la misma foto que se está mostrando.
+        // When reshuffling, avoid starting with the photo currently on display.
         if (list.size > 1 && list[0] == avoidFirst) {
             list[0] = list[1].also { list[1] = list[0] }
         }
-        // Escritura atómica: el pase de diapositivas puede estar leyendo el índice a la vez.
+        // Atomic write: the slideshow may be reading the index at the same time.
         val tmp = File(ctx.filesDir, "index_$id.tmp")
         tmp.bufferedWriter().use { w -> list.forEach { w.write(it); w.newLine() } }
         tmp.renameTo(file(ctx, id))
@@ -74,20 +74,20 @@ object PhotoIndex {
         if (recursive && depth < MAX_DEPTH) {
             for (d in subdirs) {
                 if (out.size >= MAX_PHOTOS) return
-                // Ignora carpetas ocultas (.thumbnails, .trash...), llenas de miniaturas.
+                // Skip hidden folders (.thumbnails, .trash...), which are full of thumbnails.
                 if (d.substringAfterLast('/').startsWith('.')) continue
                 scan(ctx, treeUri, d, true, depth + 1, out)
             }
         }
     }
 
-    /** Índice completo (lo usa el pase de diapositivas, que necesita acceso aleatorio). */
+    /** Full index (used by the slideshow, which needs random access). */
     fun readAll(ctx: Context, id: Int): List<String> {
         val f = file(ctx, id)
         return if (f.exists()) f.readLines().filter { it.isNotBlank() } else emptyList()
     }
 
-    /** URI en la posición dada, o null si el índice no existe o es más corto. */
+    /** URI at the given position, or null if the index doesn't exist or is shorter. */
     fun at(ctx: Context, id: Int, position: Int): String? {
         val f = file(ctx, id)
         if (!f.exists()) return null

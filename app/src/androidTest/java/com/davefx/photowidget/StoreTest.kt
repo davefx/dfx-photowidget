@@ -71,7 +71,7 @@ class StoreTest {
     }
 
     @Test fun intervalOptionsAreSeconds() {
-        // Regresión: el array estuvo en minutos y «30 segundos» se guardaba como 15.
+        // Regression: the array used to be in minutes, and "30 seconds" was saved as 15.
         val labels = ctx.resources.getStringArray(R.array.interval_labels)
         assertEquals(labels.size, ConfigActivity.INTERVALS.size)
         assertEquals(0, ConfigActivity.INTERVALS[0])

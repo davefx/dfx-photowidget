@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 
-/** Gestión de los permisos persistentes sobre carpetas y fotos elegidas. */
+/** Manages the persisted permissions on the chosen folders and photos. */
 object Grants {
     fun take(ctx: Context, uri: Uri): Boolean = try {
         ctx.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -13,7 +13,7 @@ object Grants {
         false
     }
 
-    /** Libera los permisos que ya no usa ningún widget. */
+    /** Releases permissions no longer used by any widget. */
     fun releaseUnused(ctx: Context) {
         val used = HashSet<String>()
         for (id in Store.configuredIds(ctx)) {

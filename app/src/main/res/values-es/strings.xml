@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_description">Fotos de tus carpetas, con consumo de batería mínimo</string>
+    <string name="photo_description">Foto</string>
+    <string name="tap_to_configure">Toca para elegir fotos</string>
+    <string name="no_photos_found">No se encuentran fotos.\nToca para configurar</string>
+
+    <string name="launcher_intro">Añade el widget desde el menú de widgets del escritorio. Aquí puedes editar los que ya tienes.</string>
+    <string name="your_widgets">Tus widgets</string>
+    <string name="widget_n">Widget %1$d: %2$s</string>
+    <string name="not_configured">sin configurar</string>
+    <string name="add_widget">Añadir un widget al escritorio</string>
+
+    <string name="section_photos">Fotos</string>
+    <string name="no_sources">Elige al menos una carpeta o una foto.</string>
+    <string name="add_folder">Añadir carpeta</string>
+    <string name="pick_photos">Elegir fotos</string>
+    <string name="include_subfolders">Incluir subcarpetas</string>
+    <string name="remove">Quitar</string>
+    <string name="some_photos_failed">No se pudo guardar el acceso a %d fotos</string>
+    <plurals name="n_photos">
+        <item quantity="one">%d foto elegida</item>
+        <item quantity="other">%d fotos elegidas</item>
+    </plurals>
+
+    <string name="section_change">Cambio de foto</string>
+    <string-array name="interval_labels">
+        <item>Solo al tocar el widget</item>
+        <item>Cada 30 segundos</item>
+        <item>Cada minuto</item>
+        <item>Cada 2 minutos</item>
+        <item>Cada 5 minutos</item>
+        <item>Cada 15 minutos</item>
+        <item>Cada 30 minutos</item>
+        <item>Cada hora</item>
+        <item>Cada 3 horas</item>
+        <item>Cada 6 horas</item>
+        <item>Cada 12 horas</item>
+        <item>Una vez al día</item>
+    </string-array>
+    <string name="pause_battery_saver">Con intervalos de 15 min o más, pausar con el ahorro de batería activo</string>
+    <string name="battery_note">El widget nunca despierta el teléfono y con la pantalla apagada no hace nada: los cambios esperan a que la enciendas. Solo prepara fotos cuando hay que mostrarlas, cada una una vez por vuelta. Tocar el widget pasa a la siguiente foto.</string>
+
+    <string name="section_look">Aspecto</string>
+    <string name="fit_label">Ajuste</string>
+    <string-array name="fit_labels">
+        <item>Recortar para llenar el widget</item>
+        <item>Mostrar la foto completa</item>
+    </string-array>
+    <string name="anchor_label">Encuadre (qué parte se ve al recortar)</string>
+    <string-array name="anchor_labels">
+        <item>Centro</item>
+        <item>Arriba</item>
+        <item>Abajo</item>
+        <item>Izquierda</item>
+        <item>Derecha</item>
+    </string-array>
+    <string name="corners_label">Esquinas</string>
+    <string-array name="corner_labels">
+        <item>Rectas</item>
+        <item>Ligeramente redondeadas</item>
+        <item>Redondeadas</item>
+        <item>Muy redondeadas</item>
+    </string-array>
+    <string name="border_label">Marco</string>
+    <string-array name="border_labels">
+        <item>Sin marco</item>
+        <item>Fino</item>
+        <item>Medio</item>
+        <item>Grueso</item>
+    </string-array>
+    <string name="border_color_label">Color del marco</string>
+    <string-array name="border_color_labels">
+        <item>Blanco</item>
+        <item>Negro</item>
+        <item>Gris</item>
+        <item>Crema</item>
+    </string-array>
+
+    <string name="save">Guardar</string>
+</resources>

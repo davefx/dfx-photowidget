@@ -17,7 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Comprueba en el AlarmManager real que las alarmas nunca despiertan el teléfono. */
+/** Checks against the real AlarmManager that alarms never wake up the phone. */
 @RunWith(AndroidJUnit4::class)
 class SchedulerTest {
     private val photos = setOf("content://a/1", "content://a/2", "content://a/3")
@@ -39,7 +39,7 @@ class SchedulerTest {
         assertNotNull(pending())
         val a = alarms()
         assertEquals(1, a.size)
-        assertFalse("alarma despertadora: ${a[0]}", a[0].wakeup)
+        assertFalse("wakeup alarm: ${a[0]}", a[0].wakeup)
         assertEquals(3_600_000L, a[0].interval)
     }
 
@@ -49,7 +49,7 @@ class SchedulerTest {
         val a = alarms()
         assertEquals(1, a.size)
         assertFalse(a[0].wakeup)
-        // Android 15+: cuando el launcher ha mostrado toda la ventana, para pasar a la siguiente.
+        // Android 15+: once the launcher has shown the whole window, to move on to the next one.
         val expected = if (PhotoWindow.enabled) PhotoWindow.advanceIntervalMs(ctx, ID, cfg) else 86_400_000L
         assertEquals(expected, a[0].interval)
         assertTrue(expected >= 60_000L)

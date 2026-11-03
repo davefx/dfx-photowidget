@@ -1,82 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DFX Photo Widget</string>
-    <string name="widget_description">Fotos de tus carpetas, con consumo de batería mínimo</string>
-    <string name="photo_description">Foto</string>
-    <string name="tap_to_configure">Toca para elegir fotos</string>
-    <string name="no_photos_found">No se encuentran fotos.\nToca para configurar</string>
+    <string name="app_name" translatable="false">DFX Photo Widget</string>
+    <string name="widget_description">Photos from your folders, with minimal battery use</string>
+    <string name="photo_description">Photo</string>
+    <string name="tap_to_configure">Tap to choose photos</string>
+    <string name="no_photos_found">No photos found.\nTap to configure</string>
 
-    <string name="launcher_intro">Añade el widget desde el menú de widgets del escritorio. Aquí puedes editar los que ya tienes.</string>
-    <string name="your_widgets">Tus widgets</string>
+    <string name="launcher_intro">Add the widget from your home screen\'s widget menu. Here you can edit the ones you already have.</string>
+    <string name="your_widgets">Your widgets</string>
     <string name="widget_n">Widget %1$d: %2$s</string>
-    <string name="not_configured">sin configurar</string>
-    <string name="add_widget">Añadir un widget al escritorio</string>
+    <string name="not_configured">not configured</string>
+    <string name="add_widget">Add a widget to the home screen</string>
 
-    <string name="section_photos">Fotos</string>
-    <string name="no_sources">Elige al menos una carpeta o una foto.</string>
-    <string name="add_folder">Añadir carpeta</string>
-    <string name="pick_photos">Elegir fotos</string>
-    <string name="include_subfolders">Incluir subcarpetas</string>
-    <string name="remove">Quitar</string>
-    <string name="some_photos_failed">No se pudo guardar el acceso a %d fotos</string>
+    <string name="section_photos">Photos</string>
+    <string name="no_sources">Choose at least one folder or photo.</string>
+    <string name="add_folder">Add folder</string>
+    <string name="pick_photos">Pick photos</string>
+    <string name="include_subfolders">Include subfolders</string>
+    <string name="remove">Remove</string>
+    <string name="some_photos_failed">Could not keep access to %d photos</string>
     <plurals name="n_photos">
-        <item quantity="one">%d foto elegida</item>
-        <item quantity="other">%d fotos elegidas</item>
+        <item quantity="one">%d photo selected</item>
+        <item quantity="other">%d photos selected</item>
     </plurals>
 
-    <string name="section_change">Cambio de foto</string>
+    <string name="section_change">Photo change</string>
     <string-array name="interval_labels">
-        <item>Solo al tocar el widget</item>
-        <item>Cada 30 segundos</item>
-        <item>Cada minuto</item>
-        <item>Cada 2 minutos</item>
-        <item>Cada 5 minutos</item>
-        <item>Cada 15 minutos</item>
-        <item>Cada 30 minutos</item>
-        <item>Cada hora</item>
-        <item>Cada 3 horas</item>
-        <item>Cada 6 horas</item>
-        <item>Cada 12 horas</item>
-        <item>Una vez al día</item>
+        <item>Only when tapping the widget</item>
+        <item>Every 30 seconds</item>
+        <item>Every minute</item>
+        <item>Every 2 minutes</item>
+        <item>Every 5 minutes</item>
+        <item>Every 15 minutes</item>
+        <item>Every 30 minutes</item>
+        <item>Every hour</item>
+        <item>Every 3 hours</item>
+        <item>Every 6 hours</item>
+        <item>Every 12 hours</item>
+        <item>Once a day</item>
     </string-array>
-    <string name="pause_battery_saver">Con intervalos de 15 min o más, pausar con el ahorro de batería activo</string>
-    <string name="battery_note">El widget nunca despierta el teléfono y solo prepara fotos mientras el escritorio está a la vista. Con la pantalla apagada o con otra app delante no hace nada: el cambio espera a que vuelvas al escritorio. Tocar el widget pasa a la siguiente foto.</string>
+    <string name="pause_battery_saver">With intervals of 15 min or more, pause while battery saver is on</string>
+    <string name="battery_note">The widget never wakes the phone and does nothing while the screen is off: changes wait until you turn it on. It only prepares photos when they are about to be shown, each one once per round. Tap the widget to go to the next photo.</string>
 
-    <string name="section_look">Aspecto</string>
-    <string name="fit_label">Ajuste</string>
+    <string name="section_look">Appearance</string>
+    <string name="fit_label">Fit</string>
     <string-array name="fit_labels">
-        <item>Recortar para llenar el widget</item>
-        <item>Mostrar la foto completa</item>
+        <item>Crop to fill the widget</item>
+        <item>Show the whole photo</item>
     </string-array>
-    <string name="anchor_label">Encuadre (qué parte se ve al recortar)</string>
+    <string name="anchor_label">Framing (which part stays visible when cropping)</string>
     <string-array name="anchor_labels">
-        <item>Centro</item>
-        <item>Arriba</item>
-        <item>Abajo</item>
-        <item>Izquierda</item>
-        <item>Derecha</item>
+        <item>Center</item>
+        <item>Top</item>
+        <item>Bottom</item>
+        <item>Left</item>
+        <item>Right</item>
     </string-array>
-    <string name="corners_label">Esquinas</string>
+    <string name="corners_label">Corners</string>
     <string-array name="corner_labels">
-        <item>Rectas</item>
-        <item>Ligeramente redondeadas</item>
-        <item>Redondeadas</item>
-        <item>Muy redondeadas</item>
+        <item>Square</item>
+        <item>Slightly rounded</item>
+        <item>Rounded</item>
+        <item>Very rounded</item>
     </string-array>
-    <string name="border_label">Marco</string>
+    <string name="border_label">Border</string>
     <string-array name="border_labels">
-        <item>Sin marco</item>
-        <item>Fino</item>
-        <item>Medio</item>
-        <item>Grueso</item>
+        <item>No border</item>
+        <item>Thin</item>
+        <item>Medium</item>
+        <item>Thick</item>
     </string-array>
-    <string name="border_color_label">Color del marco</string>
+    <string name="border_color_label">Border color</string>
     <string-array name="border_color_labels">
-        <item>Blanco</item>
-        <item>Negro</item>
-        <item>Gris</item>
-        <item>Crema</item>
+        <item>White</item>
+        <item>Black</item>
+        <item>Gray</item>
+        <item>Cream</item>
     </string-array>
 
-    <string name="save">Guardar</string>
+    <string name="save">Save</string>
 </resources>

@@ -16,24 +16,24 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
- * Decodificación y composición de las fotos.
+ * Photo decoding and compositing.
  *
- * Para ahorrar batería y memoria:
- *  - Se decodifica directamente al tamaño del widget (el decodificador JPEG/HEIF submuestrea
- *    sin llegar a cargar la foto de 12-50 MP a resolución completa).
- *  - Nunca se amplía una foto, y el lado mayor queda limitado a MAX_SIDE px.
- *  - Solo se llama cuando el launcher pide una foto para dibujarla (escritorio a la vista).
- *  - Esquinas y marco se pintan una vez en el bitmap: el launcher solo muestra una imagen fija.
+ * To save battery and memory:
+ *  - Photos are decoded straight to the widget size (the JPEG/HEIF decoder subsamples
+ *    without ever loading the 12-50 MP photo at full resolution).
+ *  - A photo is never upscaled, and the longer side is capped at MAX_SIDE px.
+ *  - Only called when the launcher requests a photo to draw it (home screen visible).
+ *  - Corners and frame are painted into the bitmap once: the launcher just shows a static image.
  */
 object Renderer {
     private const val MAX_SIDE = 1080
 
-    /** Tamaño del widget en píxeles, limitado a MAX_SIDE. */
+    /** Widget size in pixels, capped at MAX_SIDE. */
     fun targetSize(ctx: Context, id: Int): Pair<Int, Int> {
         val o = AppWidgetManager.getInstance(ctx).getAppWidgetOptions(id)
         val dm = ctx.resources.displayMetrics
         val portrait = dm.heightPixels >= dm.widthPixels
-        // Retrato: ancho mínimo × alto máximo. Apaisado: ancho máximo × alto mínimo.
+        // Portrait: min width × max height. Landscape: max width × min height.
         var wDp = o.getInt(if (portrait) AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
         var hDp = o.getInt(if (portrait) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
         if (wDp <= 0) wDp = 180
@@ -47,9 +47,9 @@ object Renderer {
     }
 
     /**
-     * Decodifica [uri] para un widget de [w]×[h] px: recortada para llenarlo (con el encuadre
-     * elegido) o entera. El decodificador submuestrea y recorta a la vez, así que nunca se carga
-     * la foto completa ni se hacen copias intermedias. Nunca se amplía por encima del original.
+     * Decodes [uri] for a [w]×[h] px widget: cropped to fill it (with the chosen framing) or
+     * whole. The decoder subsamples and crops in one pass, so the full photo is never loaded
+     * and no intermediate copies are made. Never upscaled beyond the original.
      */
     fun decode(ctx: Context, uri: Uri, w: Int, h: Int, cfg: WidgetConfig): Bitmap {
         val crop = cfg.fit == WidgetConfig.FIT_CROP
@@ -64,7 +64,7 @@ object Renderer {
         return ImageDecoder.decodeBitmap(src) { decoder, info, _ ->
             val iw = info.size.width.toFloat()
             val ih = info.size.height.toFloat()
-            // Zona de la foto que se va a ver, en píxeles originales.
+            // Visible region of the photo, in original pixels.
             var rw = iw
             var rh = ih
             if (crop) {
@@ -73,7 +73,7 @@ object Renderer {
             }
             val rx = (iw - rw) * ax
             val ry = (ih - rh) * ay
-            // Escala de decodificación: cubrir (recortar) o caber (entera), nunca ampliar.
+            // Decode scale: cover (crop) or fit (whole), never upscale.
             val f = if (crop) min(1f, max(w / rw, h / rh)) else min(1f, min(w / rw, h / rh))
             val sw = max(1, (iw * f).roundToInt())
             val sh = max(1, (ih * f).roundToInt())
@@ -85,15 +85,15 @@ object Renderer {
                 val bottom = ((ry + rh) * f).roundToInt().coerceIn(top + 1, sh)
                 if (left > 0 || top > 0 || right < sw || bottom < sh) decoder.crop = Rect(left, top, right, bottom)
             }
-            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE // los bitmaps de hardware no viajan en RemoteViews
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE // hardware bitmaps can't be sent through RemoteViews
             decoder.memorySizePolicy = ImageDecoder.MEMORY_POLICY_LOW_RAM
         }
     }
 
-    /** Aplica esquinas redondeadas y marco. Si no hay nada que aplicar, devuelve la misma foto. */
+    /** Applies rounded corners and frame. If there's nothing to apply, returns the same photo. */
     fun frame(ctx: Context, photo: Bitmap, cfg: WidgetConfig, widgetW: Int): Bitmap {
         if (cfg.cornerDp <= 0 && cfg.borderDp <= 0) return photo
-        // Escala los dp al tamaño real del bitmap (puede estar reducido respecto al widget).
+        // Scale the dp values to the bitmap's actual size (it may be smaller than the widget).
         val density = ctx.resources.displayMetrics.density
         val reduction = if (cfg.crop) photo.width.toFloat() / widgetW else 1f
         val px = density * min(1f, reduction)

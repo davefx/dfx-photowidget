@@ -1,1 +1,1 @@
-# Sin reglas adicionales
+# No additional rules

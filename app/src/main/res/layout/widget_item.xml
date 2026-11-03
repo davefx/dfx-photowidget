@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  La foto va dentro de un FrameLayout: en Android 15+ se le pone el toque con su posición
-  (setOnClickFillInIntent). Si la foto fuera la raíz del elemento, Android dejaría el toque en
-  manos de AdapterViewFlipper, que no lo atiende, y el widget no sabría qué foto se tocó.
+  The photo sits inside a FrameLayout: on Android 15+ it gets a tap handler carrying its position
+  (setOnClickFillInIntent). If the photo were the item's root, Android would hand the tap over to
+  AdapterViewFlipper, which ignores it, and the widget wouldn't know which photo was tapped.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

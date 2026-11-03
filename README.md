@@ -1,102 +1,131 @@
 # DFX Photo Widget
 
-Widget de escritorio para Android (10 o superior) que muestra fotos de una o varias carpetas,
-o un conjunto de fotos elegidas a mano, con un objetivo por encima de todo: **no gastar batería**.
-En concreto: **si el escritorio no está a la vista, no se trabaja.**
+[Leer en español](README.es.md)
 
-## Qué hace
+Home screen widget for Android (10 or later) that shows photos from one or more folders, or a
+hand-picked set of photos, with one goal above all: **don't drain the battery**.
+Specifically: **if the home screen is not in view, no work is done.**
 
-- Muestra una foto fija, varias fotos elegidas o todas las fotos de una o varias carpetas
-  (con o sin subcarpetas).
-- Cambia de foto cada 30 s, 1, 2, 5, 15 o 30 min, 1, 3, 6 o 12 h, una vez al día, o solo al tocar.
-- Tocar el widget pasa a la siguiente foto.
-- Aspecto: recortar para llenar o foto completa, cuatro radios de esquina, marco fino, medio o
-  grueso en blanco, negro, gris o crema.
-- Recorre las fotos en orden aleatorio y no repite ninguna hasta haberlas mostrado todas.
-- En Android 12 o superior se reconfigura con una pulsación larga sobre el widget. En Android 10 y 11,
-  desde el icono de la app.
+## What it does
 
-## Cómo consigue no gastar
+- Shows a single photo, several picked photos or all the photos in one or more folders
+  (with or without subfolders).
+- Changes photo every 30 s, 1, 2, 5, 15 or 30 min, 1, 3, 6 or 12 h, once a day, or only on tap.
+- Tapping the widget goes to the next photo.
+- Appearance: crop to fill or whole photo, four corner radii, thin, medium or thick border in
+  white, black, gray or cream.
+- Goes through the photos in random order and repeats none until all have been shown.
+- On Android 12 or later, long-press the widget to reconfigure it. On Android 10 and 11, use the
+  app icon.
+- The app's interface is available in English and Spanish (it follows the device language).
 
-El widget es un `AdapterViewFlipper` que dibuja el launcher. La app nunca le «empuja» fotos:
-**el launcher se las pide** a `SlideshowService` en el momento de dibujarlas, y solo dibuja
-cuando el escritorio está a la vista. Todo el trabajo caro (recorrer carpetas, decodificar)
-ocurre ahí y en ningún otro sitio.
+## How it avoids draining the battery
 
-- **Intervalos de 5 min o menos:** el propio launcher pasa las fotos (`autoStart`). El
-  `AdapterViewFlipper` se para solo con la pantalla apagada, en la pantalla de bloqueo o con otra
-  app delante. La app no tiene temporizador, alarma ni servicio.
-- **Intervalos de 15 min o más:** una alarma `RTC` inexacta (**nunca** `RTC_WAKEUP`) que solo
-  apunta qué foto toca, con una llamada `partiallyUpdateAppWidget`. No decodifica ni lee
-  disco. La foto se prepara cuando el launcher vuelve a dibujar el widget. Con el teléfono
-  dormido la alarma ni siquiera se entrega: espera a que se despierte por otro motivo.
+The widget is an `AdapterViewFlipper` drawn by the launcher. The app never "pushes" photos to it:
+**the launcher asks** `SlideshowService` for them at the moment it draws them, and it only draws
+while the home screen is in view. All the expensive work (scanning folders, decoding) happens
+there and nowhere else.
 
-| Problema típico de otros widgets | Qué hace este |
+- **Intervals of 5 min or less:** the launcher itself flips the photos (`autoStart`). The
+  `AdapterViewFlipper` stops by itself when the screen is off, on the lock screen or with another
+  app in front. The app has no timer, alarm or service.
+- **Intervals of 15 min or more:** an inexact `RTC` alarm (**never** `RTC_WAKEUP`) that only
+  records which photo is next, with a `partiallyUpdateAppWidget` call. It neither decodes nor
+  reads from disk. The photo is prepared when the launcher draws the widget again. While the
+  phone is asleep the alarm is not even delivered: it waits until the phone wakes up for some
+  other reason.
+
+### Android 15 and later
+
+Since Android 15, `AppWidgetManager` no longer lets the launcher ask for photos one by one.
+On every full update it calls `getViewAt()` for **every** position, in the app's process, and
+sends all the bitmaps together. If they add up to more than the system limit (about 1.5 screens
+in ARGB, ~20 MB on a 1220×2712 phone), the update is rejected and the widget stays blank.
+
+So on these versions the adapter only exposes a **window** of the photos that always fits
+(`PhotoWindow`): up to 12 photos, using at most 80 % of the limit. The launcher flips through
+the window on its own, with no work from the app. Then:
+
+- **Slideshow:** a non-wakeup alarm loads the next window once the launcher has had time to show
+  the whole current one (window size × interval, at least 1 min). The alarm is never delivered
+  early, so no photo is skipped. With the screen off, it does nothing.
+- **Tapping the last photo of the window** loads the next window at once and restarts the timer.
+- **Long intervals or tap only:** the next window is loaded when the next photo falls outside
+  the current one, and only with the screen on.
+
+Each window is decoded in one go, so each photo is still decoded once per round, and the CPU can
+sleep between windows. If all the photos fit in one window, nothing else is ever decoded. The
+one cost Android does not let the app avoid: Android gives an app no way to know whether the home
+screen is in view, so a window change can happen while another app is in front (never with the
+screen off).
+
+| Typical problem with other widgets | What this one does |
 |---|---|
-| Despierta el teléfono para cambiar de foto | Nunca usa alarmas despertadoras. `updatePeriodMillis="0"`. |
-| Prepara fotos que nadie ve | Solo se decodifica cuando el launcher pide la foto para dibujarla. |
-| Servicios, WorkManager, wakelocks | Ninguno. El único servicio es el que el launcher enlaza para pedir fotos. |
-| Sincronización con la nube | Sin permiso de red. Solo fotos locales. |
-| Decodificar la foto a 12-50 MP | `ImageDecoder` con tamaño objetivo: submuestrea directamente al tamaño del widget, con un máximo de unos 2 MB por foto en memoria. |
-| Recorrer las carpetas a menudo | Índice barajado en disco. Se reconstruye como mucho una vez al día o al completar una vuelta, y siempre con el escritorio a la vista. |
-| Esquinas y marco dibujados en cada frame | Se pintan una sola vez dentro del bitmap. |
-| Una sola foto | No se programa ninguna alarma. |
-| Ahorro de batería activo | Por defecto, los cambios por alarma se pausan. |
+| Wakes the phone to change the photo | Never uses wakeup alarms. `updatePeriodMillis="0"`. |
+| Prepares photos nobody sees | Decoding only happens when the launcher asks for the photo to draw it. |
+| Services, WorkManager, wakelocks | None. The only service is the one the launcher binds to ask for photos. |
+| Cloud sync | No network permission. Local photos only. |
+| Decoding the photo at 12-50 MP | `ImageDecoder` with a target size: subsamples straight to the widget size, with a maximum of about 2 MB per photo in memory. |
+| Scanning folders often | Shuffled index on disk. Rebuilt at most once a day or when a round is complete, and always with the home screen in view. |
+| Corners and border drawn on every frame | Painted only once into the bitmap. |
+| A single photo | No alarm is scheduled. |
+| Battery saver on | By default, alarm-driven changes are paused. |
 
-Permisos: solo `RECEIVE_BOOT_COMPLETED`, para reprogramar la alarma tras reiniciar. El acceso a
-las fotos va por el Storage Access Framework y el selector de fotos, que conceden permiso solo
-sobre lo que eliges. Al borrar un widget se liberan los permisos que ya no usa ningún otro.
+Permissions: only `RECEIVE_BOOT_COMPLETED`, to reschedule the alarm after a reboot. Access to the
+photos goes through the Storage Access Framework and the photo picker, which grant permission
+only on what you choose. When a widget is deleted, the permissions no other widget uses are
+released.
 
-## Compilar
+## Building
 
 ```sh
 ./gradlew assembleRelease
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-La release se firma con la clave de depuración para instalarla directamente. Para distribuirla,
-cambia `signingConfig` en `app/build.gradle.kts`.
+The release build is signed with the debug key so it can be installed directly. To distribute
+it, change `signingConfig` in `app/build.gradle.kts`.
 
-## Pruebas
+## Tests
 
-Dos niveles, ambos sobre un dispositivo o emulador conectado:
+Two levels, both on a connected device or emulator:
 
 ```sh
-# 1. Tests instrumentados (lógica, sin interfaz). Usan un proveedor de fotos falso que solo
-#    existe en la variante debug.
+# 1. Instrumented tests (logic, no UI). They use a fake photo provider that only exists
+#    in the debug variant.
 ./gradlew connectedDebugAndroidTest
 
-# 2. Extremo a extremo con la release: añade el widget, lo configura con los selectores del
-#    sistema y mide cuántas fotos prepara en cada situación. Unos 10 minutos.
+# 2. End-to-end with the release build: adds the widget, configures it with the system
+#    pickers and measures how many photos it prepares in each situation. About 10 minutes.
 ./gradlew assembleRelease
 python3 tools/e2e.py -s emulator-5554
 ```
 
-Los tests instrumentados cubren el índice (subcarpetas, límite de profundidad, carpetas ocultas,
-GIF, duplicados, barajado), la decodificación (tamaño, recorte, nunca ampliar, esquinas y marco),
-las alarmas reales del sistema (nunca despertadoras, intervalo correcto, ninguna con una sola foto)
-y la lógica de cambio de foto (ahorro de batería, vuelta completa, toques). También comprueban
-que con el índice al día no se recorre ninguna carpeta.
+The instrumented tests cover the index (subfolders, depth limit, hidden folders, GIF,
+duplicates, shuffling), decoding (size, cropping, never upscaling, corners and border), the
+real system alarms (never wakeup, correct interval, none with a single photo) and the
+photo-change logic (battery saver, full round, taps). They also check that no folder is scanned
+when the index is up to date.
 
-El extremo a extremo comprueba que con otra app delante o con la pantalla apagada se preparan
-0 fotos, que el toque y la alarma cambian la foto, que todo sobrevive a un reinicio y que
-batterystats no registra wakelocks ni alarmas despertadoras. Necesita Pillow (`pip install pillow`).
+The end-to-end test checks that 0 photos are prepared with another app in front or with the
+screen off, that taps and the alarm change the photo, that everything survives a reboot and that
+batterystats records no wakelocks or wakeup alarms. It needs Pillow (`pip install pillow`).
 
-## Estructura
+## Structure
 
-- `PhotoWidgetProvider.kt`: recibe los eventos (toque, alarma, arranque, cambio de tamaño, borrado).
-- `WidgetUpdater.kt`: decide qué foto toca y monta el widget. Nunca decodifica.
-- `SlideshowService.kt`: entrega al launcher la foto que pide. Es el único sitio donde se trabaja.
-- `Scheduler.kt`: alarma no despertadora.
-- `PhotoIndex.kt`: índice barajado de fotos en disco.
-- `Renderer.kt`: decodificación al tamaño justo, recorte, esquinas y marco.
-- `ConfigActivity.kt`: configuración.
-- `WidgetConfig.kt` / `Grants.kt`: persistencia y permisos.
+- `PhotoWidgetProvider.kt`: receives the events (tap, alarm, boot, resize, deletion).
+- `WidgetUpdater.kt`: decides which photo is next and builds the widget. Never decodes.
+- `SlideshowService.kt`: hands the launcher the photo it asks for. The only place where work is done.
+- `Scheduler.kt`: non-wakeup alarm.
+- `PhotoIndex.kt`: shuffled photo index on disk.
+- `Renderer.kt`: decoding at just the right size, cropping, corners and border.
+- `ConfigActivity.kt`: configuration.
+- `WidgetConfig.kt` / `Grants.kt`: persistence and permissions.
 
-## Licencia
+## License
 
 Copyright © 2026 David Marín Carreño (DaveFX).
 
-Este programa es software libre: puedes redistribuirlo y modificarlo bajo los términos de la
-[Licencia Pública General de GNU, versión 3](LICENSE) o (a tu elección) cualquier versión posterior,
-tal como la publica la Free Software Foundation. Se distribuye SIN NINGUNA GARANTÍA.
+This program is free software: you can redistribute it and/or modify it under the terms of the
+[GNU General Public License, version 3](LICENSE) or (at your option) any later version, as
+published by the Free Software Foundation. It is distributed WITHOUT ANY WARRANTY.

@@ -17,7 +17,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** El único sitio donde se trabaja: lo que hace cuando el launcher pide fotos. */
+/** The only place where real work happens: what it does when the launcher asks for photos. */
 @RunWith(AndroidJUnit4::class)
 class SlideshowFactoryTest {
     private val cfg = WidgetConfig(folders = setOf(tree.toString()), intervalSeconds = 30, cornerDp = 16, borderDp = 2)
@@ -44,7 +44,7 @@ class SlideshowFactoryTest {
         f.onDataSetChanged()
         val before = FakePhotoProvider.queries.get()
         repeat(5) { f.onDataSetChanged() }
-        assertEquals("se recorrieron carpetas sin necesidad", before, FakePhotoProvider.queries.get())
+        assertEquals("folders were scanned unnecessarily", before, FakePhotoProvider.queries.get())
     }
 
     @Test fun staleIndexIsRescanned() {
@@ -62,12 +62,12 @@ class SlideshowFactoryTest {
         assertEquals(expectedCount(), f.count)
     }
 
-    /** Android 15+ solo expone la ventana. */
+    /** Android 15+ only exposes the window. */
     private fun expectedCount() =
         if (PhotoWindow.enabled) minOf(EXPECTED_RECURSIVE.size, PhotoWindow.size(ctx, ID)) else EXPECTED_RECURSIVE.size
 
     @Test fun windowFitsSystemBitmapLimit() {
-        // Android 15+ envía todas las fotos del adaptador juntas: deben caber en el límite del sistema.
+        // Android 15+ sends all the adapter's photos together: they must fit within the system limit.
         f.onDataSetChanged()
         val dm = ctx.resources.displayMetrics
         val total = (0 until f.count).sumOf { f.getViewAt(it).estimateTotalBitmapMemoryUsageCompat() }
@@ -81,7 +81,7 @@ class SlideshowFactoryTest {
         Store.saveState(ctx, ID, Store.loadState(ctx, ID).copy(windowStart = uris.size - 1))
         f.onDataSetChanged()
         assertEquals(expectedCount(), f.count)
-        // Fuera del índice: vuelve al principio.
+        // Past the end of the index: wraps back to the start.
         Store.saveState(ctx, ID, Store.loadState(ctx, ID).copy(windowStart = uris.size + 5))
         f.onDataSetChanged()
         assertEquals(expectedCount(), f.count)
@@ -105,8 +105,8 @@ class SlideshowFactoryTest {
                 val v = rv.apply(ctx, FrameLayout(ctx))
                 val img = v.findViewById<ImageView>(R.id.item_photo)
                 val bmp = (img.drawable as? BitmapDrawable)?.bitmap
-                assertNotNull("posición $i sin foto", bmp)
-                assertTrue("posición $i: ${bmp!!.byteCount} bytes", bmp.byteCount in 1..2_000_000)
+                assertNotNull("position $i has no photo", bmp)
+                assertTrue("position $i: ${bmp!!.byteCount} bytes", bmp.byteCount in 1..2_000_000)
             }
         }
     }

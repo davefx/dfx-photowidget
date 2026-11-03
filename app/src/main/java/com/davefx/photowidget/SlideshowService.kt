@@ -11,21 +11,21 @@ import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 
 /**
- * Proveedor de fotos para el pase de diapositivas (intervalos cortos).
+ * Photo provider for the slideshow (short intervals).
  *
- * El launcher anima un AdapterViewFlipper y solo pide la siguiente foto cuando le toca pasar.
- * AdapterViewFlipper se detiene solo con la pantalla apagada, en la pantalla de bloqueo o cuando
- * hay otra app delante: no hay temporizador, alarma ni proceso nuestro trabajando en ese tiempo.
+ * The launcher animates an AdapterViewFlipper and only requests the next photo when it's time to flip.
+ * AdapterViewFlipper stops on its own when the screen is off, on the lock screen, or when another
+ * app is in front: no timer, alarm or process of ours is doing any work during that time.
  */
 class SlideshowService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
         Factory(applicationContext, intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0))
 
-    /** Visible para los tests. */
+    /** Visible for tests. */
     internal class Factory(private val ctx: Context, private val id: Int) : RemoteViewsFactory {
         private var uris: List<String> = emptyList()
         private var cfg = WidgetConfig()
-        /** Android 15+: posición del índice donde empieza la ventana (ver PhotoWindow). */
+        /** Android 15+: index position where the window starts (see PhotoWindow). */
         private var start = 0
         private var windowSize = Int.MAX_VALUE
 
@@ -35,7 +35,7 @@ class SlideshowService : RemoteViewsService() {
             cfg = Store.load(ctx, id)
             val st = Store.loadState(ctx, id)
             val now = System.currentTimeMillis()
-            // Única ocasión en que se recorren las carpetas: el launcher está pidiendo fotos.
+            // The only time folders are scanned: the launcher is requesting photos.
             if (st.indexTime == 0L || now - st.indexTime > PhotoIndex.MAX_AGE_MS || !PhotoIndex.file(ctx, id).exists()) {
                 val size = PhotoIndex.rebuild(ctx, id, cfg)
                 Store.saveState(ctx, id, st.copy(indexTime = now, indexSize = size, position = 0, windowStart = 0))
@@ -59,22 +59,22 @@ class SlideshowService : RemoteViewsService() {
             val uri = uris[(start + position) % uris.size]
             Log.d("Slideshow", "getViewAt widget=$id pos=$position")
             val (w, h) = PhotoWindow.photoSize(ctx, id)
-            // Android 15+: al tocar, la foto dice en qué posición de la ventana está; si es la
-            // última, se carga la ventana siguiente (ver WidgetUpdater).
+            // Android 15+: on tap, the photo reports its position in the window; if it's the
+            // last one, the next window is loaded (see WidgetUpdater).
             if (PhotoWindow.enabled) views.setOnClickFillInIntent(
                 R.id.item_photo, Intent().putExtra(WidgetUpdater.EXTRA_SHOWN, position),
             )
             try {
                 views.setImageViewBitmap(R.id.item_photo, render(uri, w, h))
             } catch (e: Exception) {
-                Log.w("Slideshow", "No se puede mostrar $uri", e)
+                Log.w("Slideshow", "Can't display $uri", e)
             }
             return views
         }
 
         /**
-         * Android 15+ vuelve a pedir toda la ventana en cada actualización completa (un toque,
-         * por ejemplo). Mientras el proceso sigue vivo, las fotos ya preparadas no se decodifican otra vez.
+         * Android 15+ requests the whole window again on every full update (a tap, for
+         * example). While the process stays alive, photos already prepared aren't decoded again.
          */
         private fun render(uri: String, w: Int, h: Int): Bitmap {
             if (!PhotoWindow.enabled) return Renderer.frame(ctx, Renderer.decode(ctx, Uri.parse(uri), w, h, cfg), cfg, w)
@@ -85,11 +85,11 @@ class SlideshowService : RemoteViewsService() {
                 .also { cache.put(key, it) }
         }
 
-        /** Vista vacía mientras se prepara la foto, en lugar del texto «Cargando…». */
+        /** Empty view while the photo is being prepared, instead of the "Loading…" text. */
         override fun getLoadingView() = RemoteViews(ctx.packageName, R.layout.widget_item)
         /**
-         * El launcher ajusta la foto al tamaño REAL del widget en cada dibujado. Así llena todo
-         * el espacio aunque el tamaño que nos comunicó el launcher sea aproximado o esté desfasado.
+         * The launcher fits the photo to the widget's ACTUAL size on every draw. That way it fills
+         * the whole space even if the size the launcher reported to us is approximate or stale.
          */
         private fun itemLayout() = if (cfg.crop) R.layout.widget_item_crop else R.layout.widget_item
 
@@ -102,7 +102,7 @@ class SlideshowService : RemoteViewsService() {
     }
 
     companion object {
-        /** Cabe una ventana completa (PhotoWindow.MAX_SIZE × 2 MB). Se libera con el proceso. */
+        /** Holds a full window (PhotoWindow.MAX_SIZE × 2 MB). Freed along with the process. */
         private val cache = object : LruCache<String, Bitmap>(16_000_000) {
             override fun sizeOf(key: String, value: Bitmap) = value.allocationByteCount
         }

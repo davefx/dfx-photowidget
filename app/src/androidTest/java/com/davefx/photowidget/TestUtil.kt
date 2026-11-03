@@ -8,10 +8,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 object TestUtil {
     val ctx: Context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
-    /** Carpeta raíz del proveedor falso, como la devolvería el selector de carpetas. */
+    /** Root folder of the fake provider, as the folder picker would return it. */
     val tree: Uri = DocumentsContract.buildTreeDocumentUri(FakePhotoProvider.AUTHORITY, "root")
 
-    /** URI de una foto del proveedor falso, como dentro de un árbol (igual que las genera el índice). */
+    /** URI of a fake-provider photo, tree-based (the same way the index generates them). */
     fun photo(path: String): Uri = DocumentsContract.buildDocumentUriUsingTree(tree, path)
 
     fun shell(cmd: String): String {
@@ -26,8 +26,8 @@ object TestUtil {
     }
 
     /**
-     * Alarmas PENDIENTES de la app según dumpsys (no las estadísticas de alarmas ya disparadas,
-     * que Android 14 también lista con la misma etiqueta).
+     * The app's PENDING alarms according to dumpsys (not the stats for already-fired alarms,
+     * which Android 14 also lists under the same label).
      */
     fun pendingAlarms(all: Boolean = false): List<Alarm> {
         val out = shell("dumpsys alarm").lines()
@@ -46,19 +46,19 @@ object TestUtil {
         return if (all) res else res.filter { it.key !in baseline }
     }
 
-    /** Alarmas que ya existían (p. ej., de widgets reales en el dispositivo) y que los tests ignoran. */
+    /** Pre-existing alarms (e.g. from real widgets on the device) that the tests ignore. */
     private var baseline: Set<String> = emptySet()
 
     fun snapshotAlarms() { baseline = pendingAlarms(all = true).map { it.key }.toSet() }
 
-    /** Las fotos que el escaneo debe encontrar en el árbol falso con subcarpetas. */
+    /** Photos the scan must find in the fake tree when including subfolders. */
     val EXPECTED_RECURSIVE: Set<String> = buildSet {
         add("root/a_800x600.jpg")
         add("root/b_600x800.png")
         add("root/sub/c_4000x3000.jpg")
         add("root/sub/deeper/d_300x200.jpg")
         var p = "root"
-        for (i in 1..6) { // profundidad máxima 6
+        for (i in 1..6) { // max depth 6
             p += "/l$i"
             add("$p/deep${i}_200x200.jpg")
         }
@@ -67,7 +67,7 @@ object TestUtil {
     val EXPECTED_FLAT: Set<String> =
         setOf("root/a_800x600.jpg", "root/b_600x800.png").map { photo(it).toString() }.toSet()
 
-    /** IDs de widget ficticios (no colocados en ningún launcher), lejos de los reales. */
+    /** Fake widget IDs (not placed on any launcher), far from real ones. */
     const val ID = 900_001
     const val ID2 = 900_002
 }
