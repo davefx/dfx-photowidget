@@ -92,3 +92,11 @@ batterystats no registra wakelocks ni alarmas despertadoras. Necesita Pillow (`p
 - `Renderer.kt`: decodificación al tamaño justo, recorte, esquinas y marco.
 - `ConfigActivity.kt`: configuración.
 - `WidgetConfig.kt` / `Grants.kt`: persistencia y permisos.
+
+## Licencia
+
+Copyright © 2026 David Marín Carreño (DaveFX).
+
+Este programa es software libre: puedes redistribuirlo y modificarlo bajo los términos de la
+[Licencia Pública General de GNU, versión 3](LICENSE) o (a tu elección) cualquier versión posterior,
+tal como la publica la Free Software Foundation. Se distribuye SIN NINGUNA GARANTÍA.
