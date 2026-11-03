@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis="0": el sistema nunca despierta la app para actualizar el widget.
+  Los cambios de foto los lleva una alarma inexacta NO despertadora (ver Scheduler.kt).
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:minResizeWidth="40dp"
+    android:minResizeHeight="40dp"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_photo"
+    android:previewLayout="@layout/widget_preview"
+    android:previewImage="@drawable/widget_preview_image"
+    android:description="@string/widget_description"
+    android:configure="com.davefx.photowidget.ConfigActivity"
+    android:widgetFeatures="reconfigurable" />

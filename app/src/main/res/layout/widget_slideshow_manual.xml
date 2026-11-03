@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Intervalos largos y «solo al tocar»: el flipper no avanza solo. La alarma (no despertadora) o el
+  toque le indican qué foto mostrar, y el launcher pide esa foto cuando va a dibujar el widget,
+  es decir, solo con el escritorio a la vista.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <AdapterViewFlipper
+        android:id="@+id/flipper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:autoStart="false"
+        android:loopViews="true"
+        android:inAnimation="@animator/fade_in"
+        android:outAnimation="@animator/fade_out" />
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/empty_bg"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/no_photos_found"
+        android:textColor="#FFFFFFFF"
+        android:textSize="13sp" />
+</FrameLayout>

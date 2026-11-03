@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pase de diapositivas cada 300 s. Lo anima el launcher, y AdapterViewFlipper se para solo
+  con la pantalla apagada o bloqueada, o con otra app delante. Generado: un layout por intervalo,
+  porque flipInterval solo puede fijarse de forma fiable desde XML.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <AdapterViewFlipper
+        android:id="@+id/flipper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:autoStart="true"
+        android:loopViews="true"
+        android:flipInterval="300000"
+        android:inAnimation="@animator/fade_in"
+        android:outAnimation="@animator/fade_out" />
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/empty_bg"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/no_photos_found"
+        android:textColor="#FFFFFFFF"
+        android:textSize="13sp" />
+</FrameLayout>
