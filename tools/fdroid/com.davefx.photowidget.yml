@@ -1,0 +1,27 @@
+# Draft for https://gitlab.com/fdroid/fdroiddata (metadata/com.davefx.photowidget.yml).
+# Description, summary and graphics come from fastlane/metadata in this repository.
+Categories:
+  - Theming
+License: GPL-3.0-or-later
+AuthorName: David Marín Carreño
+WebSite: https://github.com/davefx/dfx-photowidget
+SourceCode: https://github.com/davefx/dfx-photowidget
+IssueTracker: https://github.com/davefx/dfx-photowidget/issues
+
+AutoName: DFX Photo Widget
+
+RepoType: git
+Repo: https://github.com/davefx/dfx-photowidget.git
+
+Builds:
+  - versionName: '1.0'
+    versionCode: 1
+    commit: v1.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '1.0'
+CurrentVersionCode: 1

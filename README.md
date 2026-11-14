@@ -17,6 +17,8 @@ Specifically: **if the home screen is not in view, no work is done.**
 - Goes through the photos in random order and repeats none until all have been shown.
 - On Android 12 or later, long-press the widget to reconfigure it. On Android 10 and 11, use the
   app icon.
+- Backs up the settings of every widget to a file and restores them from it. After reinstalling or on
+  another phone it asks for each folder again; photos picked one by one have to be picked again.
 - The app's interface is available in English and Spanish (it follows the device language).
 
 ## How it avoids draining the battery
@@ -83,8 +85,12 @@ released.
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-The release build is signed with the debug key so it can be installed directly. To distribute
-it, change `signingConfig` in `app/build.gradle.kts`.
+The release build is signed with the key described in `keystore.properties` (not in the
+repository: `storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Without that file it comes
+out unsigned, as F-Droid expects. `./gradlew bundleRelease` builds the `.aab` for Google Play.
+
+See [PUBLISHING.md](PUBLISHING.md) for the Google Play and F-Droid steps, and
+[PRIVACY.md](PRIVACY.md) for the privacy policy.
 
 ## Tests
 

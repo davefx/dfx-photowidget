@@ -1,0 +1,20 @@
+I wanted a photo widget for my home screen that didn't eat my battery. Most of the ones I tried wake the phone up to change the photo, keep services running in the background or decode 50 MP photos to show them in a few square centimetres... So I wrote my own, with one rule above everything else: if nobody is looking at the home screen, the widget does nothing.
+
+What it does:
+• Shows a single photo, a set of photos you pick, or every photo in one or more folders (with or without subfolders).
+• Changes the photo every 30 s, 1, 2, 5, 15 or 30 min, 1, 3, 6 or 12 h, once a day, or only when you tap it.
+• Tap the widget to go to the next photo.
+• Crop to fill or show the whole photo, four corner styles, and a thin, medium or thick border in white, black, gray or cream.
+• Goes through your photos in random order and doesn't repeat any until it has shown them all.
+• Back up your widgets' settings to a file and restore them, even on another phone.
+
+How it saves battery:
+• It never wakes the phone. No wakeup alarms, no WorkManager, no wakelocks, no background services.
+• With short intervals the launcher itself changes the photos, and it stops on its own when the screen is off or another app is in front.
+• With long intervals, a non-wakeup alarm only notes which photo comes next. The photo is prepared when the launcher draws the widget again.
+• Photos are decoded straight to the widget's size, with corners and border painted once into the image.
+• With intervals of 15 min or more, Battery Saver pauses automatic changes (you can turn this off).
+
+Privacy: no network permission, no ads, no analytics. The app only sees the folders and photos you pick, through Android's own pickers. Nothing leaves your phone.
+
+Free software (GPL-3.0). Source code: https://github.com/davefx/dfx-photowidget

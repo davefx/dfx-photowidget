@@ -17,6 +17,8 @@ En concreto: **si el escritorio no está a la vista, no se trabaja.**
 - Recorre las fotos en orden aleatorio y no repite ninguna hasta haberlas mostrado todas.
 - En Android 12 o superior se reconfigura con una pulsación larga sobre el widget. En Android 10 y 11,
   desde el icono de la app.
+- Guarda la configuración de todos los widgets en un fichero y la recupera desde él. Tras reinstalar o en
+  otro móvil, pide de nuevo permiso para cada carpeta; las fotos elegidas una a una hay que volver a elegirlas.
 - La interfaz de la app está en inglés y en español (sigue el idioma del dispositivo).
 
 ## Cómo consigue no gastar
@@ -83,8 +85,12 @@ sobre lo que eliges. Al borrar un widget se liberan los permisos que ya no usa n
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-La release se firma con la clave de depuración para instalarla directamente. Para distribuirla,
-cambia `signingConfig` en `app/build.gradle.kts`.
+La release se firma con la clave indicada en `keystore.properties` (fuera del repositorio:
+`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Sin ese fichero sale sin firmar, como
+espera F-Droid. `./gradlew bundleRelease` genera el `.aab` para Google Play.
+
+Los pasos para Google Play y F-Droid están en [PUBLISHING.md](PUBLISHING.md), y la política de
+privacidad en [PRIVACY.es.md](PRIVACY.es.md).
 
 ## Pruebas
 

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="18 18 72 72">
+  <!-- Same drawing as res/drawable/ic_launcher_foreground.xml, cropped to the adaptive icon's safe zone. -->
+  <rect x="18" y="18" width="72" height="72" fill="#24305A"/>
+  <path fill="#FFFFFF" d="M34,34h40a4,4 0,0 1,4 4v32a4,4 0,0 1,-4 4h-40a4,4 0,0 1,-4 -4v-32a4,4 0,0 1,4 -4z"/>
+  <path fill="#5C6FA8" d="M34,68L46,54L56,63L62,57L74,68z"/>
+  <circle cx="66" cy="45" r="5" fill="#F2C14E"/>
+</svg>
