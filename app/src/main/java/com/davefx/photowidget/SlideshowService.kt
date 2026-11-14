@@ -28,6 +28,10 @@ class SlideshowService : RemoteViewsService() {
         /** Android 15+: index position where the window starts (see PhotoWindow). */
         private var start = 0
         private var windowSize = Int.MAX_VALUE
+        /** Diagnostics: bitmap bytes handed out since the last onDataSetChanged. */
+        private var servedBytes = 0L
+        private var served = 0
+        private var decoded = 0
 
         override fun onCreate() {}
 
@@ -36,7 +40,8 @@ class SlideshowService : RemoteViewsService() {
             val st = Store.loadState(ctx, id)
             val now = System.currentTimeMillis()
             // The only time folders are scanned: the launcher is requesting photos.
-            if (st.indexTime == 0L || now - st.indexTime > PhotoIndex.MAX_AGE_MS || !PhotoIndex.file(ctx, id).exists()) {
+            val rebuild = st.indexTime == 0L || now - st.indexTime > PhotoIndex.MAX_AGE_MS || !PhotoIndex.file(ctx, id).exists()
+            if (rebuild) {
                 val size = PhotoIndex.rebuild(ctx, id, cfg)
                 Store.saveState(ctx, id, st.copy(indexTime = now, indexSize = size, position = 0, windowStart = 0))
                 if (size <= 1) Scheduler.cancel(ctx, id)
@@ -49,6 +54,9 @@ class SlideshowService : RemoteViewsService() {
                 start = 0
                 windowSize = Int.MAX_VALUE
             }
+            servedBytes = 0; served = 0; decoded = 0
+            DiagLog.log(ctx, "dataSetChanged widget=$id rebuilt=$rebuild photos=${uris.size} start=$start count=${getCount()}" +
+                if (PhotoWindow.enabled) PhotoWindow.photoSize(ctx, id).let { (w, h) -> " photo=${w}x$h" } else "")
         }
 
         override fun getCount() = minOf(uris.size, windowSize)
@@ -65,9 +73,16 @@ class SlideshowService : RemoteViewsService() {
                 R.id.item_photo, Intent().putExtra(WidgetUpdater.EXTRA_SHOWN, position),
             )
             try {
-                views.setImageViewBitmap(R.id.item_photo, render(uri, w, h))
+                val bmp = render(uri, w, h)
+                views.setImageViewBitmap(R.id.item_photo, bmp)
+                servedBytes += bmp.allocationByteCount
             } catch (e: Exception) {
-                Log.w("Slideshow", "Can't display $uri", e)
+                DiagLog.log(ctx, "widget=$id can't display $uri", e)
+            }
+            if (++served == getCount()) {
+                val dm = ctx.resources.displayMetrics
+                DiagLog.log(ctx, "widget=$id served $served photos ($decoded decoded): ${DiagLog.mb(servedBytes)}" +
+                    " of a ${DiagLog.mb(6L * dm.widthPixels * dm.heightPixels)} limit")
             }
             return views
         }
@@ -81,6 +96,7 @@ class SlideshowService : RemoteViewsService() {
             val key = "$id|$uri|$w|$h|${cfg.hashCode()}"
             cache.get(key)?.let { return it }
             Log.d("Slideshow", "decode widget=$id")
+            decoded++
             return Renderer.frame(ctx, Renderer.decode(ctx, Uri.parse(uri), w, h, cfg), cfg, w)
                 .also { cache.put(key, it) }
         }

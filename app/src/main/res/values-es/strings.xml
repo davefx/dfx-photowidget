@@ -77,5 +77,30 @@
         <item>Crema</item>
     </string-array>
 
+
+    <string name="section_backup">Copia de seguridad</string>
+    <string name="backup_note">Guarda en un fichero la configuración de todos tus widgets. Para recuperarla, abre la configuración de un widget y carga el fichero. Si has reinstalado la app o estás en otro móvil, te pedirá permiso de nuevo para cada carpeta, y las fotos elegidas una a una hay que volver a elegirlas.</string>
+    <string name="backup_save">Guardar copia de la configuración</string>
+    <plurals name="backup_saved">
+        <item quantity="one">Guardada la configuración de %d widget</item>
+        <item quantity="other">Guardada la configuración de %d widgets</item>
+    </plurals>
+    <string name="backup_failed">No se pudo guardar la copia</string>
+    <string name="backup_load">Cargar configuración de una copia</string>
+    <string name="backup_invalid">Ese fichero no es una copia de DFX Photo Widget</string>
+    <string name="backup_which">¿La configuración de qué widget?</string>
+    <string name="backup_regrant_folder">Vuelve a dar acceso a la carpeta «%s»</string>
+    <plurals name="backup_photos_lost">
+        <item quantity="one">%d foto ya no se puede leer: vuelve a elegirla</item>
+        <item quantity="other">%d fotos ya no se pueden leer: vuelve a elegirlas</item>
+    </plurals>
+
+
+    <string name="section_diag">Diagnóstico</string>
+    <string name="diag_note">Si un widget falla, guarda este informe (en Drive, por ejemplo) y envíalo junto con la descripción del problema. Contiene la configuración de tus widgets y un registro de lo que han hecho; no incluye ninguna foto.</string>
+    <string name="diag_save">Guardar informe de diagnóstico</string>
+    <string name="diag_saved">Informe guardado</string>
+    <string name="diag_failed">No se pudo guardar el informe</string>
+
     <string name="save">Guardar</string>
 </resources>

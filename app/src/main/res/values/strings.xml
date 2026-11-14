@@ -78,5 +78,30 @@
         <item>Cream</item>
     </string-array>
 
+
+    <string name="section_backup">Backup</string>
+    <string name="backup_note">Saves the settings of all your widgets to a file. To restore them, open a widget\'s settings and load the file. After reinstalling or on another phone, you\'ll be asked to allow each folder again, and photos picked one by one have to be picked again.</string>
+    <string name="backup_save">Back up settings</string>
+    <plurals name="backup_saved">
+        <item quantity="one">Settings of %d widget saved</item>
+        <item quantity="other">Settings of %d widgets saved</item>
+    </plurals>
+    <string name="backup_failed">Could not save the backup</string>
+    <string name="backup_load">Load settings from a backup</string>
+    <string name="backup_invalid">That file isn\'t a DFX Photo Widget backup</string>
+    <string name="backup_which">Which widget\'s settings?</string>
+    <string name="backup_regrant_folder">Allow access to the folder «%s» again</string>
+    <plurals name="backup_photos_lost">
+        <item quantity="one">%d photo can\'t be read any more: pick it again</item>
+        <item quantity="other">%d photos can\'t be read any more: pick them again</item>
+    </plurals>
+
+
+    <string name="section_diag">Diagnostics</string>
+    <string name="diag_note">If a widget misbehaves, save this report (to Drive, for example) and send it along with your bug report. It has your widgets\' settings and a log of what they did; it doesn\'t include any photos.</string>
+    <string name="diag_save">Save diagnostic report</string>
+    <string name="diag_saved">Report saved</string>
+    <string name="diag_failed">Could not save the report</string>
+
     <string name="save">Save</string>
 </resources>

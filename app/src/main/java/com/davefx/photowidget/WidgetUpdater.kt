@@ -26,6 +26,8 @@ object WidgetUpdater {
 
     fun handle(ctx: Context, id: Int, trigger: Trigger, shown: Int = -1) {
         val cfg = Store.load(ctx, id)
+        // Slideshow alarms with every photo in the window usually do nothing: not logged.
+        if (trigger != Trigger.ALARM) DiagLog.log(ctx, "$trigger widget=$id shown=$shown interactive=${interactive(ctx)} state=${Store.loadState(ctx, id)}")
         if (!cfg.hasSources) {
             showEmpty(ctx, id, configured = false)
             Scheduler.cancel(ctx, id)
@@ -36,7 +38,7 @@ object WidgetUpdater {
                 // The index will be rebuilt when the launcher requests the first photo.
                 Store.saveState(ctx, id, WidgetState())
                 push(ctx, id, cfg)
-                AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
+                if (!PhotoWindow.enabled) notifyChanged(ctx, id) // since Android 15 the full update already fetches the photos
                 val known = if (cfg.folders.isEmpty()) cfg.photos.size else -1
                 Scheduler.schedule(ctx, id, cfg, known)
             }
@@ -79,16 +81,14 @@ object WidgetUpdater {
                 // Full cycle: reshuffle (and pick up new photos) when preparing the next photo.
                 if (PhotoWindow.enabled && !interactive(ctx)) return // Android 15+ would decode right now: wait
                 Store.saveState(ctx, id, st.copy(position = 0, windowStart = 0, indexTime = 0L, lastChange = now))
-                AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
-                partial(ctx, id, cfg) { setDisplayedChild(R.id.flipper, 0) }
+                reload(ctx, id, cfg, child = 0)
             }
             PhotoWindow.enabled && pos - st.windowStart !in 0 until PhotoWindow.size(ctx, id) -> {
                 // The next photo is outside the window: the system prepares the new window
                 // right away, so don't do it while the screen is off.
                 if (!interactive(ctx)) return
                 Store.saveState(ctx, id, st.copy(position = pos, windowStart = pos, lastChange = now))
-                AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
-                partial(ctx, id, cfg) { setDisplayedChild(R.id.flipper, 0) }
+                reload(ctx, id, cfg, child = 0)
             }
             else -> {
                 Store.saveState(ctx, id, st.copy(position = pos, lastChange = now))
@@ -112,12 +112,13 @@ object WidgetUpdater {
             return
         }
         val next = st.windowStart + PhotoWindow.size(ctx, id)
+        DiagLog.log(ctx, "ALARM widget=$id next window at $next of ${st.indexSize}")
         Store.saveState(
             ctx, id,
             if (next >= st.indexSize) st.copy(windowStart = 0, position = 0, indexTime = 0L) // vuelta: rebarajar
             else st.copy(windowStart = next, position = next),
         )
-        AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
+        reload(ctx, id, cfg)
     }
 
     /**
@@ -152,8 +153,42 @@ object WidgetUpdater {
     private fun windowStart(st: WidgetState) = if (PhotoWindow.enabled) st.windowStart else 0
 
     private fun refreshIndexLater(ctx: Context, id: Int) {
+        DiagLog.log(ctx, "widget=$id index marked stale")
         Store.saveState(ctx, id, Store.loadState(ctx, id).copy(indexTime = 0L))
-        AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
+        reload(ctx, id, Store.load(ctx, id))
+    }
+
+    /**
+     * New photos for the widget. Up to Android 14, notifyAppWidgetViewDataChanged: the launcher
+     * requests them when it draws. Since Android 15, a full update instead: the data-changed path
+     * converts the adapter again on top of the stored views, and on a Xiaomi with Android 16 the
+     * widget went blank after every daily reshuffle done that way, while full updates (boot, app
+     * update, opening the app) always drew fine. The cost is the same: the photos are decoded once.
+     */
+    private fun reload(ctx: Context, id: Int, cfg: WidgetConfig, child: Int? = null) {
+        if (PhotoWindow.enabled) {
+            push(ctx, id, cfg) { if (child != null) setDisplayedChild(R.id.flipper, child) }
+        } else {
+            notifyChanged(ctx, id)
+            if (child != null) partial(ctx, id, cfg) { setDisplayedChild(R.id.flipper, child) }
+        }
+    }
+
+    /** Asks the launcher (or, since Android 15, the system right away) to fetch the photos again. */
+    private fun notifyChanged(ctx: Context, id: Int) {
+        try {
+            AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
+        } catch (e: Exception) {
+            DiagLog.log(ctx, "notifyAppWidgetViewDataChanged failed widget=$id", e)
+        }
+    }
+
+    private fun update(ctx: Context, id: Int, views: RemoteViews) {
+        try {
+            AppWidgetManager.getInstance(ctx).updateAppWidget(id, views)
+        } catch (e: Exception) {
+            DiagLog.log(ctx, "updateAppWidget failed widget=$id", e)
+        }
     }
 
     /** Rebuilds the widget (boot, app update, launcher request). */
@@ -163,9 +198,7 @@ object WidgetUpdater {
     }
 
     /** The widget was resized: the launcher will request the photos again at the new size. */
-    fun resized(ctx: Context, id: Int) {
-        AppWidgetManager.getInstance(ctx).notifyAppWidgetViewDataChanged(id, R.id.flipper)
-    }
+    fun resized(ctx: Context, id: Int) = if (PhotoWindow.enabled) redraw(ctx, id) else notifyChanged(ctx, id)
 
     private fun layoutFor(cfg: WidgetConfig) = when {
         !cfg.slideshow -> R.layout.widget_slideshow_manual
@@ -190,12 +223,16 @@ object WidgetUpdater {
             }
             extra()
         }
-        AppWidgetManager.getInstance(ctx).updateAppWidget(id, views)
+        update(ctx, id, views)
     }
 
     private inline fun partial(ctx: Context, id: Int, cfg: WidgetConfig, block: RemoteViews.() -> Unit) {
-        AppWidgetManager.getInstance(ctx)
-            .partiallyUpdateAppWidget(id, RemoteViews(ctx.packageName, layoutFor(cfg)).apply(block))
+        try {
+            AppWidgetManager.getInstance(ctx)
+                .partiallyUpdateAppWidget(id, RemoteViews(ctx.packageName, layoutFor(cfg)).apply(block))
+        } catch (e: Exception) {
+            DiagLog.log(ctx, "partiallyUpdateAppWidget failed widget=$id", e)
+        }
     }
 
     fun showEmpty(ctx: Context, id: Int, configured: Boolean) {
@@ -208,7 +245,8 @@ object WidgetUpdater {
             )
             setOnClickPendingIntent(R.id.root, ConfigActivity.pendingIntent(ctx, id))
         }
-        AppWidgetManager.getInstance(ctx).updateAppWidget(id, views)
+        DiagLog.log(ctx, "widget=$id shows empty (configured=$configured)")
+        update(ctx, id, views)
     }
 
     /** Template for taps on each photo; mutable so the system can add the position. */

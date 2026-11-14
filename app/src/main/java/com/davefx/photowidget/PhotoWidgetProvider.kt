@@ -15,8 +15,11 @@ import java.util.concurrent.Executors
  */
 class PhotoWidgetProvider : AppWidgetProvider() {
 
+    private var appContext: Context? = null
+
     override fun onReceive(context: Context, intent: Intent) {
         val ctx = context.applicationContext
+        appContext = ctx
         val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
         when (intent.action) {
             WidgetUpdater.ACTION_NEXT -> runAsync {
@@ -28,6 +31,7 @@ class PhotoWidgetProvider : AppWidgetProvider() {
             }
             ACTION_CONFIGURED -> runAsync { if (validId(ctx, id)) WidgetUpdater.handle(ctx, id, WidgetUpdater.Trigger.CONFIGURED) }
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> runAsync {
+                DiagLog.log(ctx, "${intent.action?.substringAfterLast('.')}: widgets ${allIds(ctx).joinToString()}")
                 // Alarms don't survive a reboot: reschedule and redraw the cached photo.
                 for (wid in allIds(ctx)) {
                     if (!Store.isConfigured(ctx, wid)) continue
@@ -43,6 +47,7 @@ class PhotoWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         val ctx = context.applicationContext
         runAsync {
+            DiagLog.log(ctx, "onUpdate ${ids.joinToString()}")
             for (id in ids) {
                 if (Store.isConfigured(ctx, id)) WidgetUpdater.redraw(ctx, id)
                 else WidgetUpdater.showEmpty(ctx, id, configured = false)
@@ -52,12 +57,17 @@ class PhotoWidgetProvider : AppWidgetProvider() {
 
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) {
         val ctx = context.applicationContext
-        if (Store.isConfigured(ctx, id)) runAsync { WidgetUpdater.resized(ctx, id) }
+        if (Store.isConfigured(ctx, id)) runAsync {
+            DiagLog.log(ctx, "resized widget=$id to ${options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)}-${options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)}" +
+                "x${options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)}-${options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)} dp")
+            WidgetUpdater.resized(ctx, id)
+        }
     }
 
     override fun onDeleted(context: Context, ids: IntArray) {
         val ctx = context.applicationContext
         runAsync {
+            DiagLog.log(ctx, "deleted ${ids.joinToString()}")
             for (id in ids) {
                 Scheduler.cancel(ctx, id)
                 Store.delete(ctx, id)
@@ -68,11 +78,12 @@ class PhotoWidgetProvider : AppWidgetProvider() {
 
     private fun runAsync(block: () -> Unit) {
         val pending = goAsync()
+        val ctx = appContext
         executor.execute {
             try {
                 block()
             } catch (e: Exception) {
-                Log.e("PhotoWidget", "Widget error", e)
+                if (ctx != null) DiagLog.log(ctx, "Widget error", e) else Log.e("PhotoWidget", "Widget error", e)
             } finally {
                 pending.finish()
             }

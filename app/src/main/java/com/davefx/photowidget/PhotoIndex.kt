@@ -3,7 +3,6 @@ package com.davefx.photowidget
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
-import android.util.Log
 import java.io.File
 
 /**
@@ -17,7 +16,6 @@ import java.io.File
  *  - The list is shuffled once: it is walked through entirely before any photo repeats.
  */
 object PhotoIndex {
-    private const val TAG = "PhotoIndex"
     private const val MAX_PHOTOS = 20_000
     private const val MAX_DEPTH = 6
     const val MAX_AGE_MS = 24L * 60 * 60 * 1000
@@ -35,7 +33,7 @@ object PhotoIndex {
                 val rootId = DocumentsContract.getTreeDocumentId(treeUri)
                 scan(ctx, treeUri, rootId, cfg.includeSubfolders, 0, all)
             } catch (e: Exception) {
-                Log.w(TAG, "Can't read folder $tree", e)
+                DiagLog.log(ctx, "widget=$id can't read folder $tree", e)
             }
         }
         val list = all.toMutableList().apply { shuffle() }
@@ -47,6 +45,7 @@ object PhotoIndex {
         val tmp = File(ctx.filesDir, "index_$id.tmp")
         tmp.bufferedWriter().use { w -> list.forEach { w.write(it); w.newLine() } }
         tmp.renameTo(file(ctx, id))
+        DiagLog.log(ctx, "widget=$id index rebuilt: ${list.size} photos")
         return list.size
     }
 

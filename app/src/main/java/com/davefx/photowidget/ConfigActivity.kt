@@ -1,6 +1,7 @@
 package com.davefx.photowidget
 
 import android.app.PendingIntent
+import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -42,11 +43,37 @@ class ConfigActivity : ComponentActivity() {
     private lateinit var cfg: WidgetConfig
     private lateinit var sourcesBox: LinearLayout
 
+    /** Folders from a restored backup that still have to be allowed again, one by one. */
+    private val foldersToRegrant = ArrayDeque<String>()
+
     private val pickFolder = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null && Grants.take(this, uri)) {
             cfg = cfg.copy(folders = cfg.folders + uri.toString())
             refreshSources()
         }
+        regrantNextFolder()
+    }
+
+    private val writeBackup = registerForActivityResult(ActivityResultContracts.CreateDocument(Backup.MIME)) { uri ->
+        if (uri != null) exportTo(uri)
+    }
+
+    private val writeReport = registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        if (uri != null) Thread {
+            val ok = try {
+                contentResolver.openOutputStream(uri, "wt")!!.use { it.write(DiagLog.report(this).toByteArray()) }
+                true
+            } catch (e: Exception) {
+                false
+            }
+            runOnUiThread {
+                Toast.makeText(this, if (ok) R.string.diag_saved else R.string.diag_failed, Toast.LENGTH_LONG).show()
+            }
+        }.start()
+    }
+
+    private val readBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) importFrom(uri)
     }
 
     private val pickPhotos = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { uris ->
@@ -67,6 +94,21 @@ class ConfigActivity : ComponentActivity() {
         setResult(RESULT_CANCELED, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
 
         if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) showConfigScreen()
+        else if (savedInstanceState == null) redrawAll()
+    }
+
+    /**
+     * Opening the app redraws every widget. Some launchers (seen on Xiaomi after its memory
+     * cleanups) lose a widget's views and show an empty space whose tap opens the app: this is the
+     * way back. It only costs the decoding of each widget's current photos, once.
+     */
+    private fun redrawAll() {
+        val ctx = applicationContext
+        Thread {
+            val ids = PhotoWidgetProvider.allIds(ctx).filter { Store.isConfigured(ctx, it) }
+            DiagLog.log(ctx, "app opened, redrawing widgets ${ids.joinToString()}")
+            ids.forEach { WidgetUpdater.redraw(ctx, it) }
+        }.start()
     }
 
     override fun onResume() {
@@ -100,6 +142,16 @@ class ConfigActivity : ComponentActivity() {
                 awm.requestPinAppWidget(ComponentName(this, PhotoWidgetProvider::class.java), null, pinnedCallback())
             })
         }
+        if (ids.any { Store.isConfigured(this, it) }) {
+            col.addView(header(getString(R.string.section_backup)))
+            col.addView(hint(getString(R.string.backup_note)))
+            col.addView(button(getString(R.string.backup_save)) { writeBackup.launch(Backup.FILE_NAME) })
+        }
+        col.addView(header(getString(R.string.section_diag)))
+        col.addView(hint(getString(R.string.diag_note)))
+        col.addView(button(getString(R.string.diag_save)) {
+            writeReport.launch("dfx-photowidget-report-" + java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.US).format(java.util.Date()) + ".txt")
+        })
         setScreen(col)
     }
 
@@ -115,8 +167,8 @@ class ConfigActivity : ComponentActivity() {
 
     // ---------- Widget configuration ----------
 
-    private fun showConfigScreen() {
-        cfg = Store.load(this, widgetId)
+    private fun showConfigScreen(initial: WidgetConfig = Store.load(this, widgetId)) {
+        cfg = initial
         val col = column()
 
         col.addView(header(getString(R.string.section_photos)))
@@ -169,6 +221,9 @@ class ConfigActivity : ComponentActivity() {
         col.addView(button(getString(R.string.save)) { save() }.apply {
             (layoutParams as LinearLayout.LayoutParams).topMargin = dp(24)
         })
+        col.addView(button(getString(R.string.backup_load)) { readBackup.launch(arrayOf(Backup.MIME, "text/*", "application/octet-stream")) }.apply {
+            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
+        })
         setScreen(col)
     }
 
@@ -202,6 +257,72 @@ class ConfigActivity : ComponentActivity() {
         PhotoWidgetProvider.notifyConfigured(this, widgetId)
         setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
         finish()
+    }
+
+    // ---------- Backup ----------
+
+    private fun exportTo(uri: Uri) {
+        val configs = PhotoWidgetProvider.allIds(this).filter { Store.isConfigured(this, it) }.map { Store.load(this, it) }
+        val ok = try {
+            contentResolver.openOutputStream(uri, "wt")!!.use { it.write(Backup.toJson(configs).toByteArray()) }
+            true
+        } catch (e: Exception) {
+            false
+        }
+        Toast.makeText(
+            this,
+            if (ok) resources.getQuantityString(R.plurals.backup_saved, configs.size, configs.size) else getString(R.string.backup_failed),
+            Toast.LENGTH_LONG,
+        ).show()
+    }
+
+    private fun importFrom(uri: Uri) {
+        val configs = try {
+            contentResolver.openInputStream(uri)!!.use { it.readBytes().toString(Charsets.UTF_8) }.let(Backup::fromJson)
+        } catch (e: Exception) {
+            null
+        }
+        when {
+            configs.isNullOrEmpty() -> Toast.makeText(this, R.string.backup_invalid, Toast.LENGTH_LONG).show()
+            configs.size == 1 -> restore(configs[0])
+            else -> AlertDialog.Builder(this)
+                .setTitle(R.string.backup_which)
+                .setItems(configs.mapIndexed { i, c -> getString(R.string.widget_n, i + 1, describeSources(c)) }.toTypedArray()) { _, i ->
+                    restore(configs[i])
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    /**
+     * Fills the form with a widget from the backup. Folders and photos this app can still read
+     * are kept as they are. Folders it can't read any more (reinstall, another phone) are asked
+     * for again, opening the picker on each one. Photos picked one by one can't be recovered that way.
+     */
+    private fun restore(c: WidgetConfig) {
+        val held = contentResolver.persistedUriPermissions.filter { it.isReadPermission }.map { it.uri.toString() }.toSet()
+        val photos = c.photos.filter { it in held }.toSet()
+        showConfigScreen(c.copy(folders = c.folders.filter { it in held }.toSet(), photos = photos))
+        val lost = c.photos.size - photos.size
+        if (lost > 0) {
+            Toast.makeText(this, resources.getQuantityString(R.plurals.backup_photos_lost, lost, lost), Toast.LENGTH_LONG).show()
+        }
+        foldersToRegrant.clear()
+        foldersToRegrant.addAll(c.folders.filter { it !in held }.sorted())
+        regrantNextFolder()
+    }
+
+    private fun regrantNextFolder() {
+        val tree = foldersToRegrant.removeFirstOrNull() ?: return
+        Toast.makeText(this, getString(R.string.backup_regrant_folder, folderName(tree)), Toast.LENGTH_LONG).show()
+        val start = try {
+            val t = Uri.parse(tree)
+            DocumentsContract.buildDocumentUriUsingTree(t, DocumentsContract.getTreeDocumentId(t))
+        } catch (e: Exception) {
+            DCIM_URI
+        }
+        pickFolder.launch(start)
     }
 
     private fun describeSources(c: WidgetConfig): String {

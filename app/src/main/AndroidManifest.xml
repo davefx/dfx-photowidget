@@ -9,8 +9,12 @@
     -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!--
+      No backup: the folder and photo permissions don't survive a restore, so the saved settings
+      would be useless there. It also keeps the list of chosen photos off the cloud.
+    -->
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
