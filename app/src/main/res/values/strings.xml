@@ -102,6 +102,8 @@
     <string name="diag_save">Save diagnostic report</string>
     <string name="diag_saved">Report saved</string>
     <string name="diag_failed">Could not save the report</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="privacy_url" translatable="false">https://github.com/davefx/dfx-photowidget/blob/main/PRIVACY.md</string>
 
     <string name="save">Save</string>
 </resources>

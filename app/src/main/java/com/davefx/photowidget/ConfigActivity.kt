@@ -152,6 +152,12 @@ class ConfigActivity : ComponentActivity() {
         col.addView(button(getString(R.string.diag_save)) {
             writeReport.launch("dfx-photowidget-report-" + java.text.SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.US).format(java.util.Date()) + ".txt")
         })
+        col.addView(button(getString(R.string.privacy_policy)) {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.privacy_url))))
+            } catch (_: android.content.ActivityNotFoundException) {
+            }
+        })
         setScreen(col)
     }
 

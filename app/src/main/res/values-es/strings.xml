@@ -101,6 +101,8 @@
     <string name="diag_save">Guardar informe de diagnóstico</string>
     <string name="diag_saved">Informe guardado</string>
     <string name="diag_failed">No se pudo guardar el informe</string>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="privacy_url" translatable="false">https://github.com/davefx/dfx-photowidget/blob/main/PRIVACY.es.md</string>
 
     <string name="save">Guardar</string>
 </resources>
