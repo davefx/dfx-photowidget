@@ -1,4 +1,4 @@
-Quería un widget de fotos para el escritorio que no se comiera la batería. La mayoría de los que probé despiertan el teléfono para cambiar de foto, dejan servicios corriendo en segundo plano o decodifican fotos de 50 MP para mostrarlas en cuatro centímetros cuadrados... Así que me hice el mío, con una regla por encima de todo: si nadie está mirando el escritorio, el widget no hace nada.
+Quería un widget de fotos para el escritorio que no se comiera la batería. La mayoría de los que probé despiertan el teléfono para cambiar de foto, dejan servicios corriendo en segundo plano o decodifican fotos de 50 MP para mostrarlas en cuatro centímetros cuadrados... Así que me hice el mío, con una regla por encima de todo: si nadie está mirando el escritorio, el widget no hace nada. Y de paso, que ocupara lo mínimo: la app entera pesa unos 250 KB.
 
 Qué hace:
 • Muestra una foto fija, varias fotos elegidas o todas las fotos de una o varias carpetas (con o sin subcarpetas).
@@ -8,12 +8,13 @@ Qué hace:
 • Recorre las fotos en orden aleatorio y no repite ninguna hasta haberlas mostrado todas.
 • Guarda la configuración de tus widgets en un fichero y recupérala, incluso en otro móvil.
 
-Cómo ahorra batería:
+Cómo ahorra batería y espacio:
 • Nunca despierta el teléfono. Ni alarmas despertadoras, ni WorkManager, ni wakelocks, ni servicios en segundo plano.
 • Con intervalos cortos, el propio launcher pasa las fotos, y se para solo con la pantalla apagada o con otra app delante.
 • Con intervalos largos, una alarma no despertadora solo apunta qué foto toca. La foto se prepara cuando el launcher vuelve a dibujar el widget.
 • Las fotos se decodifican directamente al tamaño del widget, con las esquinas y el marco pintados una sola vez.
 • Con intervalos de 15 min o más, el ahorro de batería pausa los cambios automáticos (se puede desactivar).
+• Una descarga de unos 250 KB, sin bibliotecas de terceros más allá de las básicas de Android. Las fotos no se copian: se leen de donde están.
 
 Privacidad: sin permiso de red, sin anuncios y sin estadísticas. La app solo ve las carpetas y fotos que eliges, a través de los selectores del propio Android. Nada sale de tu teléfono.
 

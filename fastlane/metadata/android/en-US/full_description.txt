@@ -1,4 +1,4 @@
-I wanted a photo widget for my home screen that didn't eat my battery. Most of the ones I tried wake the phone up to change the photo, keep services running in the background or decode 50 MP photos to show them in a few square centimetres... So I wrote my own, with one rule above everything else: if nobody is looking at the home screen, the widget does nothing.
+I wanted a photo widget for my home screen that didn't eat my battery. Most of the ones I tried wake the phone up to change the photo, keep services running in the background or decode 50 MP photos to show them in a few square centimetres... So I wrote my own, with one rule above everything else: if nobody is looking at the home screen, the widget does nothing. And while I was at it, it had to be small: the whole app weighs about 250 KB.
 
 What it does:
 • Shows a single photo, a set of photos you pick, or every photo in one or more folders (with or without subfolders).
@@ -8,12 +8,13 @@ What it does:
 • Goes through your photos in random order and doesn't repeat any until it has shown them all.
 • Back up your widgets' settings to a file and restore them, even on another phone.
 
-How it saves battery:
+How it saves battery and space:
 • It never wakes the phone. No wakeup alarms, no WorkManager, no wakelocks, no background services.
 • With short intervals the launcher itself changes the photos, and it stops on its own when the screen is off or another app is in front.
 • With long intervals, a non-wakeup alarm only notes which photo comes next. The photo is prepared when the launcher draws the widget again.
 • Photos are decoded straight to the widget's size, with corners and border painted once into the image.
 • With intervals of 15 min or more, Battery Saver pauses automatic changes (you can turn this off).
+• About a 250 KB download, with no third-party libraries beyond Android's basic ones. Photos aren't copied: they're read from where they are.
 
 Privacy: no network permission, no ads, no analytics. The app only sees the folders and photos you pick, through Android's own pickers. Nothing leaves your phone.
 
