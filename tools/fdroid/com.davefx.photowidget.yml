@@ -16,7 +16,7 @@ Repo: https://github.com/davefx/dfx-photowidget.git
 Builds:
   - versionName: '1.0'
     versionCode: 1
-    commit: v1.0
+    commit: 412fd9ba1730236bb1738589d9a0450f8ffb03c8
     subdir: app
     gradle:
       - yes
